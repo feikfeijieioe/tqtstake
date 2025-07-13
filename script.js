@@ -51,31 +51,43 @@
     }
   };
 
-  const setupTextObserver = () => {
-    const observer = new MutationObserver(muts => {
-      const elements = getElements();
-      muts.forEach(m => {
-        if (m.type === 'characterData' && m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
-          m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'EUR' : '€');
+const setupTextObserver = () => {
+  const observer = new MutationObserver(muts => {
+    const elements = getElements();
+    muts.forEach(m => {
+      if (m.type === 'characterData' && m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
+        const match = m.target.nodeValue.match(/(\d+(?:\.\d+)?)\s*ARS[\s\u00A0]*/);
+        if (match) {
+          const amount = match[1];
+          m.target.nodeValue = m.target.nodeValue.replace(/(\d+(?:\.\d+)?)\s*ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? '$1 USD' : '$1 €');
+        } else {
+          m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '€');
         }
-      });
+      }
     });
+  });
 
-    const observeNode = node => {
-      if (node.nodeType === Node.TEXT_NODE && node.nodeValue.includes('ARS')) {
-        const elements = getElements();
-        if (!shouldSkip(node, elements)) {
-          observer.observe(node, { characterData: true });
+  const observeNode = node => {
+    if (node.nodeType === Node.TEXT_NODE && node.nodeValue.includes('ARS')) {
+      const elements = getElements();
+      if (!shouldSkip(node, elements)) {
+        observer.observe(node, { characterData: true });
+        const match = node.nodeValue.match(/(\d+(?:\.\d+)?)\s*ARS[\s\u00A0]*/);
+        if (match) {
+          const amount = match[1];
+          node.nodeValue = node.nodeValue.replace(/(\d+(?:\.\d+)?)\s*ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? '$1 USD' : '$1 €');
+        } else {
           node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'EUR' : '€');
         }
-      } else if (node.nodeType === Node.ELEMENT_NODE) {
-        [...node.childNodes].forEach(observeNode);
       }
-    };
-
-    observeNode(document.body);
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      [...node.childNodes].forEach(observeNode);
+    }
   };
+
+  observeNode(document.body);
+  observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+};
 
   const pathReplacements = [
     { from: { fill: "#FFC800", d: "M48 96c26.51 0 48-21.49" }, to: { fill: "#6CDE07", d: "M48 96c26.51 0 48-21.49 48-48S74.51 0 48 0 0 21.49 0 48s21.49 48 48 48" }},
