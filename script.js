@@ -47,7 +47,7 @@
     });
     let node;
     while (node = walker.nextNode()) {
-      node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'EUR' : '€');
+      node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$');
     }
   };
 
@@ -56,7 +56,7 @@
       const elements = getElements();
       muts.forEach(m => {
         if (m.type === 'characterData' && m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
-          m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '$');
+          m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'EUR' : '€');
         }
       });
     });
@@ -115,8 +115,8 @@
         for (let i = 0; i < 8 && parent; i++, parent = parent.parentElement) {
           const currency = [...parent.querySelectorAll('span, div')].find(e => /^[A-Z]{2,5}$/.test(e.textContent?.trim()))?.textContent.trim();
           const dollar = [...parent.querySelectorAll('span, div')].find(e => /\$\d/.test(e.textContent))?.textContent.match(/\$[\d,]+\.\d{2}/)?.[0];
-          if (currency && dollar && dollar !== "$0.00") {
-            const dollarAmount = parseFloat(dollar.replace(/[$,]/g, ''));
+          if (currency && euro && euro !== "0.00€") {
+            const dollarAmount = parseFloat(euro.replace(/[€,]/g, ''));
             const cur = currency.toLowerCase();
             const price = prices[cur];
             if (dollarAmount && price) {
