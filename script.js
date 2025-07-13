@@ -59,11 +59,25 @@
 const replaceARS = () => {
     const elements = getElements();
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
-      acceptNode: n => shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : n.nodeValue.includes('ARS') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+      acceptNode: n => {
+        try {
+          return shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : n.nodeValue.includes('ARS') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        } catch (e) {
+          console.error('Error in acceptNode:', e);
+          return NodeFilter.FILTER_REJECT;
+        }
+      }
     });
     let node;
     while (node = walker.nextNode()) {
-      node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*(\d+(?:\.\d+)?)/g, isUSDElement(node, elements) ? 'EUR $1' : '$1 €');
+      try {
+        // Remplacer "ARS" suivi d'un montant (avec ou sans espace, entier ou décimal)
+        node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*(\d+(?:\.\d+)?)/g, (match, amount) => {
+          return isUSDElement(node, elements) ? `EUR ${amount}` : `${amount} €`;
+        });
+      } catch (e) {
+        console.error('Error replacing ARS in node:', node.nodeValue, e);
+      }
     }
 };
   
