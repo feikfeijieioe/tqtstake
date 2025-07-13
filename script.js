@@ -50,9 +50,9 @@
       const match = node.nodeValue.match(/(\d+(?:\.\d+)?)\s*ARS[\s\u00A0]*/);
       if (match) {
         const amount = match[1];
-        node.nodeValue = node.nodeValue.replace(/(\d+(?:\.\d+)?)\s*ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? '$1 USD' : '$1 €');
+        node.nodeValue = node.nodeValue.replace(/(\d+(?:\.\d+)?)\s*ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? '$1 €' : '$1 €');
       } else {
-        node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '€');
+        node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? '€' : '€');
       }
     }
   };
@@ -65,9 +65,9 @@
           const match = m.target.nodeValue.match(/(\d+(?:\.\d+)?)\s*ARS[\s\u00A0]*/);
           if (match) {
             const amount = match[1];
-            m.target.nodeValue = m.target.nodeValue.replace(/(\d+(?:\.\d+)?)\s*ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? '$1 USD' : '$1 €');
+            m.target.nodeValue = m.target.nodeValue.replace(/(\d+(?:\.\d+)?)\s*ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? '$1 €' : '$1 €');
           } else {
-            m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '€');
+            m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? '€' : '€');
           }
         }
       });
@@ -81,9 +81,9 @@
           const match = node.nodeValue.match(/(\d+(?:\.\d+)?)\s*ARS[\s\u00A0]*/);
           if (match) {
             const amount = match[1];
-            node.nodeValue = node.nodeValue.replace(/(\d+(?:\.\d+)?)\s*ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? '$1 USD' : '$1 €');
+            node.nodeValue = node.nodeValue.replace(/(\d+(?:\.\d+)?)\s*ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? '$1 €' : '$1 €');
           } else {
-            node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'EUR' : '€');
+            node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? '€' : '€');
           }
         }
       } else if (node.nodeType === Node.ELEMENT_NODE) {
@@ -100,7 +100,7 @@
     { from: { fill: "#276304", d: "M79.2 67.32v-4.56l.04.04c5.52-1" }, to: { fill: "#1B3802", d: "M51.52 73.32v6.56h-5.8V73.4c-7.56-.6-13.08-3.56-16.92-7.64l4.72-6.56c2.84 3 6.96 5.68 12.2 6.48V51.64c-7.48-1.88-15.4-4.64-15.4-14.12 0-7.4 6.04-13.32 15.4-14.12v-6.68h5.8v6.84c5.96.6 10.84 2.92 14.6 6.56l-4.88 6.32c-2.68-2.68-6.12-4.36-9.76-5.08v12.52c7.56 2.04 15.72 4.88 15.72 14.6 0 7.4-4.8 13.8-15.72 14.84zm-5.8-30.96V31.04c-4.16.44-6.68 2.68-6.68 5.96 0 2.84 2.84 4.28 6.68 5.36M58.6 59.28c0-3.36-3-4.88-7.04-6.12v12.52c5-.72 7.04-3.64 7.04-6.4" }}
   ];
 
-  const deleteAttrs = { fill: "#276304", "fill-rule": "evenodd", d:-magasin "m27.8 62.4-1.24-5.08H16.52" };
+  const deleteAttrs = { fill: "#276304", "fill-rule": "evenodd", d: "m27.8 62.4-1.24-5.08H16.52" };
   const matches = (el, attrs) => Object.entries(attrs).every(([k, v]) => k === 'd' ? el.getAttribute(k)?.startsWith(v) : el.getAttribute(k) === v);
 
   const replacePaths = () => {
