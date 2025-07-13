@@ -47,7 +47,7 @@
     });
     let node;
     while (node = walker.nextNode()) {
-      node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$');
+      node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'EUR' : '€');
     }
   };
 
@@ -61,7 +61,7 @@ const setupTextObserver = () => {
           const amount = match[1];
           m.target.nodeValue = m.target.nodeValue.replace(/(\d+(?:\.\d+)?)\s*ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? '$1 USD' : '$1 €');
         } else {
-          m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '€');
+          m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'EUR' : '€');
         }
       }
     });
