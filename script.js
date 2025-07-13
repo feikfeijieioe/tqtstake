@@ -56,17 +56,17 @@
   const shouldSkip = (node, elements) => elements.excluded?.contains(node);
   const isEURElement = (node, elements) => elements.eur.some(el => el?.contains(node));
 
-  const replaceARS = () => {
+const replaceARS = () => {
     const elements = getElements();
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
       acceptNode: n => shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : n.nodeValue.includes('ARS') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
     });
     let node;
     while (node = walker.nextNode()) {
-      node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isEURElement(node, elements) ? 'EUR' : '€');
+      node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*(\d+(?:\.\d+)?)/g, isUSDElement(node, elements) ? 'EUR $1' : '$1 €');
     }
-  };
-
+};
+  
   const setupTextObserver = () => {
     const observer = new MutationObserver(muts => {
       const elements = getElements();
