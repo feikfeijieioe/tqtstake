@@ -47,11 +47,11 @@
     });
     let node;
     while (node = walker.nextNode()) {
-      node.nodeValue = node.nodeValue.replace(
-  /(\d[\d.,]*)\s*ARS[\s\u00A0]*/g,
-  (match, amount) => isUSDElement(node, elements) ? `${amount} EUR` : `${amount} €`
-);
-
+      if (isUSDElement(node, elements)) {
+        node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, 'EUR');
+      } else {
+        node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*(\d[\d,]*\.?\d*)/g, '$1 €');
+      }
     }
   };
 
@@ -60,11 +60,11 @@
       const elements = getElements();
       muts.forEach(m => {
         if (m.type === 'characterData' && m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
-          m.target.nodeValue = m.target.nodeValue.replace(
-  /(\d[\d.,]*)\s*ARS[\s\u00A0]*/g,
-  (match, amount) => isUSDElement(m.target, elements) ? `${amount} EUR` : `${amount} €`
-);
-
+          if (isUSDElement(m.target, elements)) {
+            m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, 'EUR');
+          } else {
+            m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*(\d[\d,]*\.?\d*)/g, '$1 €');
+          }
         }
       });
     });
@@ -74,11 +74,11 @@
         const elements = getElements();
         if (!shouldSkip(node, elements)) {
           observer.observe(node, { characterData: true });
-          node.nodeValue = node.nodeValue.replace(
-  /(\d[\d.,]*)\s*ARS[\s\u00A0]*/g,
-  (match, amount) => isUSDElement(node, elements) ? `${amount} EUR` : `${amount} €`
-);
-
+          if (isUSDElement(node, elements)) {
+            node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, 'EUR');
+          } else {
+            node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*(\d[\d,]*\.?\d*)/g, '$1 €');
+          }
         }
       } else if (node.nodeType === Node.ELEMENT_NODE) {
         [...node.childNodes].forEach(observeNode);
