@@ -136,37 +136,29 @@
     });
   };
 
-  // Updated function to replace EUR indicator with ARS style and add white inner circle
-  const replaceEURIndicator = () => {
-    const arsIndicator = document.querySelector('input[data-testid="currency-ars"] ~ span.indicator.variant-default.svelte-84lle0');
-    const eurIndicator = document.querySelector('input[data-testid="currency-eur"] ~ span.indicator.variant-default.svelte-84lle0');
-    
-    if (arsIndicator && eurIndicator) {
-      // Match ARS indicator style (solid yellow circle from SVG)
-      const arsStyles = window.getComputedStyle(arsIndicator);
-      const styleProps = ['background-color', 'border', 'width', 'height', 'border-radius', 'margin', 'padding'];
-      styleProps.forEach(prop => {
-        eurIndicator.style[prop] = arsStyles[prop];
-      });
+  // Nouvelle fonction pour déplacer l'input et l'indicator ARS vers EUR
+  const moveARStoEUR = () => {
+    const arsLabel = document.querySelector('label[data-test="currency-ars-label"]');
+    const eurLabel = document.querySelector('label[data-test="currency-eur-label"]');
 
-      // Remove any existing inner content and add white inner circle
-      eurIndicator.innerHTML = ''; // Clear existing content
-      const innerCircle = document.createElement('span');
-      innerCircle.style.display = 'block';
-      innerCircle.style.width = '50%';
-      innerCircle.style.height = '50%';
-      innerCircle.style.backgroundColor = '#FFFFFF';
-      innerCircle.style.borderRadius = '50%';
-      innerCircle.style.position = 'absolute';
-      innerCircle.style.top = '50%';
-      innerCircle.style.left = '50%';
-      innerCircle.style.transform = 'translate(-50%, -50%)';
-      eurIndicator.appendChild(innerCircle);
+    if (arsLabel && eurLabel) {
+      // Récupérer l'input et l'indicator ARS
+      const arsInput = arsLabel.querySelector('input[data-testid="currency-ars"]');
+      const arsIndicator = arsLabel.querySelector('span.indicator.variant-default.svelte-84lle0');
 
-      // Preserve the EUR SVG or text if needed (optional, adjust based on site behavior)
-      const eurLabel = eurIndicator.parentElement.querySelector('span.label-content svg');
-      if (eurLabel) {
-        eurIndicator.appendChild(eurLabel.cloneNode(true));
+      if (arsInput && arsIndicator) {
+        // Supprimer l'input et l'indicator existants dans EUR
+        const eurInput = eurLabel.querySelector('input[data-testid="currency-eur"]');
+        const eurIndicator = eurLabel.querySelector('span.indicator.variant-default.svelte-84lle0');
+        if (eurInput) eurInput.remove();
+        if (eurIndicator) eurIndicator.remove();
+
+        // Ajouter l'input et l'indicator ARS dans EUR
+        eurLabel.insertBefore(arsInput, eurLabel.firstChild);
+        eurLabel.insertBefore(arsIndicator, arsInput.nextSibling);
+
+        // Mettre à jour l'attribut data-testid pour refléter EUR
+        arsInput.setAttribute('data-testid', 'currency-eur');
       }
     }
   };
@@ -223,7 +215,7 @@
     replaceNoneAndBronze();
     replacePaths();
     replaceBorder();
-    replaceEURIndicator();
+    moveARStoEUR(); // Appeler la nouvelle fonction
     setupTextObserver();
     setupDecimalLogger();
     setInterval(fetchPrices, 60000);
@@ -232,7 +224,7 @@
       replaceARS(); 
       replaceNoneAndBronze(); 
       replaceBorder(); 
-      replaceEURIndicator(); 
+      moveARStoEUR(); // Mettre à jour périodiquement
     }, 1000);
     new MutationObserver(muts => {
       muts.forEach(m => {
@@ -247,7 +239,7 @@
       replaceNoneAndBronze();
       replacePaths();
       replaceBorder();
-      replaceEURIndicator();
+      moveARStoEUR(); // Mettre à jour lors des changements DOM
     }).observe(document.body, { childList: true, subtree: true });
   })();
 })();
