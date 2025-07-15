@@ -10,9 +10,17 @@
     SHIB: "shiba-inu", UNI: "uniswap", POL: "polygon", TRUMP: "trumpcoin"
   };
 
-  const API = `https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(COINS).join(',')}&vs_currencies=usd`;
+  // Taux statiques simulés (à ajuster manuellement ou via un serveur)
+  const prices = {
+    btc: 60000, eth: 3000, ltc: 80, usdt: 1, sol: 150,
+    doge: 0.1, bch: 400, xrp: 0.5, trx: 0.06, eos: 0.7,
+    bnb: 500, usdc: 1, ape: 5, busd: 1, cro: 0.09,
+    dai: 1, link: 15, sand: 0.8, shib: 0.00001, uni: 7,
+    pol: 0.6, trump: 0.03
+  };
+
   const CONV_SELECTOR = 'span.label-content.svelte-osbo5w.full-width div.crypto[data-testid="conversion-amount"]';
-  const prices = {}, originalTexts = new WeakMap();
+  const originalTexts = new WeakMap();
   
   const getElements = () => ({
     excluded: document.evaluate('/html/body/div[1]/div[1]/div[2]/div[2]/div/div/div/div[4]/div/div[5]/label/span[2]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue,
@@ -23,25 +31,26 @@
   const isUSDElement = (node, elements) => elements.usd.some(el => el?.contains(node));
 
   const fetchPrices = async () => {
-    try {
-      const data = await (await fetch(API)).json();
-      Object.entries(COINS).forEach(([sym, id]) => prices[sym.toLowerCase()] = data[id]?.usd || null);
-    } catch {}
+    // Simulation statique, pas de fetch car CSP bloque
+    console.log('Using static prices:', prices);
   };
 
   const convertAll = () => {
-    const val = document.querySelector('input[data-test="input-game-amount"]')?.value;
-    const amountInUSD = val ? Math.max(0, +val) || null : null; // Traiter l'entrée comme USD
+    const val = document.querySelector('input[data-test="input-game-amount"]')?.value || '0'; // Valeur par défaut 0 si vide
+    const amountInUSD = Math.max(0, parseFloat(val)) || 0; // Convertir en nombre, éviter null
+    console.log('Input value (USD):', amountInUSD); // Débogage
     document.querySelectorAll(CONV_SELECTOR).forEach(div => {
       if (!originalTexts.has(div)) originalTexts.set(div, div.textContent);
       const curMatch = div.textContent.match(/([A-Z]{2,5})$/)?.[1] || '';
       const cur = curMatch.toLowerCase();
-      if (cur === 'ltc') {
-        const price = prices[cur];
-        div.textContent = amountInUSD && price ? `${(amountInUSD / price).toFixed(8)} LTC` : originalTexts.get(div);
+      const price = prices[cur];
+      if (cur === 'ltc' && amountInUSD > 0 && price) {
+        const convertedAmount = (amountInUSD / price).toFixed(8);
+        div.textContent = `${convertedAmount} LTC`;
+      } else if (amountInUSD > 0 && price) {
+        div.textContent = `${(amountInUSD / price).toFixed(8)} ${curMatch}`;
       } else {
-        const price = prices[cur];
-        div.textContent = amountInUSD && price ? `${(amountInUSD / price).toFixed(8)} ${curMatch}` : originalTexts.get(div);
+        div.textContent = originalTexts.get(div);
       }
     });
   };
@@ -51,7 +60,7 @@
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
       acceptNode: n => {
         if (shouldSkip(n, elements)) return NodeFilter.FILTER_REJECT;
-        if (n.nodeValue.includes('LTC')) return NodeFilter.FILTER_REJECT; // Exclure LTC du remplacement ARS
+        if (n.nodeValue.includes('LTC')) return NodeFilter.FILTER_REJECT;
         return n.nodeValue.includes('ARS') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
       }
     });
@@ -160,7 +169,6 @@
     replacePaths();
     setupTextObserver();
     setupDecimalLogger();
-    setInterval(fetchPrices, 60000);
     setInterval(() => { convertAll(); replaceARS(); }, 1000);
     new MutationObserver(muts => {
       muts.forEach(m => {
