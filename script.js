@@ -58,7 +58,7 @@
     });
     let node;
     while (node = walker.nextNode()) {
-      node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum I');
+      node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
     }
   };
 
@@ -71,7 +71,7 @@
             m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '$');
           }
           if ((m.target.nodeValue.includes('None') || m.target.nodeValue.includes('Bronze')) && !shouldSkip(m.target, elements)) {
-            m.target.nodeValue = m.target.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum I');
+            m.target.nodeValue = m.target.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
           }
         }
       });
@@ -84,7 +84,7 @@
           observer.observe(node, { characterData: true });
           node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$')
                                        .replace(/\bNone\b/g, 'Platinum II')
-                                       .replace(/\bBronze\b/g, 'Platinum I');
+                                       .replace(/\bBronze\b/g, 'Platinum III');
         }
       } else if (node.nodeType === Node.ELEMENT_NODE) {
         [...node.childNodes].forEach(observeNode);
