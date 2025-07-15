@@ -31,23 +31,33 @@
 
   const convertAll = () => {
     const val = document.querySelector('input[data-test="input-game-amount"]')?.value;
-    const amount = val ? Math.max(0, +val) || null : null;
+    const amountInUSD = val ? Math.max(0, +val) || null : null; // Traiter l'entrée comme USD
     document.querySelectorAll(CONV_SELECTOR).forEach(div => {
       if (!originalTexts.has(div)) originalTexts.set(div, div.textContent);
-      const cur = (div.textContent.match(/([A-Z]{2,5})$/)?.[1] || '').toLowerCase();
-      const price = prices[cur];
-      div.textContent = amount && price ? `${(amount / price).toFixed(8)} ${cur.toUpperCase()}` : originalTexts.get(div);
+      const curMatch = div.textContent.match(/([A-Z]{2,5})$/)?.[1] || '';
+      const cur = curMatch.toLowerCase();
+      if (cur === 'ltc') {
+        const price = prices[cur];
+        div.textContent = amountInUSD && price ? `${(amountInUSD / price).toFixed(8)} LTC` : originalTexts.get(div);
+      } else {
+        const price = prices[cur];
+        div.textContent = amountInUSD && price ? `${(amountInUSD / price).toFixed(8)} ${curMatch}` : originalTexts.get(div);
+      }
     });
   };
 
   const replaceARS = () => {
     const elements = getElements();
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
-      acceptNode: n => shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : n.nodeValue.includes('ARS') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+      acceptNode: n => {
+        if (shouldSkip(n, elements)) return NodeFilter.FILTER_REJECT;
+        if (n.nodeValue.includes('LTC')) return NodeFilter.FILTER_REJECT; // Exclure LTC du remplacement ARS
+        return n.nodeValue.includes('ARS') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
     });
     let node;
     while (node = walker.nextNode()) {
-      node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'EUR' : '€');
+      node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$');
     }
   };
 
@@ -55,8 +65,8 @@
     const observer = new MutationObserver(muts => {
       const elements = getElements();
       muts.forEach(m => {
-        if (m.type === 'characterData' && m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
-          m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'EUR' : '€');
+        if (m.type === 'characterData' && m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements) && !m.target.nodeValue.includes('LTC')) {
+          m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '$');
         }
       });
     });
@@ -64,9 +74,9 @@
     const observeNode = node => {
       if (node.nodeType === Node.TEXT_NODE && node.nodeValue.includes('ARS')) {
         const elements = getElements();
-        if (!shouldSkip(node, elements)) {
+        if (!shouldSkip(node, elements) && !node.nodeValue.includes('LTC')) {
           observer.observe(node, { characterData: true });
-          node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'EUR' : '€');
+          node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$');
         }
       } else if (node.nodeType === Node.ELEMENT_NODE) {
         [...node.childNodes].forEach(observeNode);
@@ -119,7 +129,7 @@
             const dollarAmount = parseFloat(dollar.replace(/[$,]/g, ''));
             const cur = currency.toLowerCase();
             const price = prices[cur];
-            if (dollarAmount && price) {
+            if (cur === 'ltc' && dollarAmount && price) {
               const convertedAmount = (dollarAmount / price).toFixed(8);
               const key = `${el.textContent.trim()}-${currency}`;
               current.add(key);
