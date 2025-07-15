@@ -113,7 +113,11 @@
   const replaceNoneText = () => {
     document.querySelectorAll('span.weight-semibold.line-height-120pct.align-left.size-default.text-size-default.variant-subtle.with-icon-space.svelte-1f6lug3').forEach(span => {
       if (span.textContent.trim() === 'None') {
-        span.textContent = 'Platinum II';
+        const newSpan = document.createElement('span');
+        newSpan.className = span.className;
+        newSpan.style.cssText = span.style.cssText;
+        newSpan.innerHTML = '<!---->Platinum II';
+        span.replaceWith(newSpan);
       }
     });
   };
@@ -157,9 +161,7 @@
         }
       });
       logged.forEach(key => !current.has(key) && logged.delete(key));
-      requestAnimation
-
-Frame(checkDecimals);
+      requestAnimationFrame(checkDecimals);
     };
     checkDecimals();
   };
