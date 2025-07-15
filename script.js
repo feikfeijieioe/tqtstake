@@ -13,7 +13,7 @@
   const API = `https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(COINS).join(',')}&vs_currencies=usd`;
   const CONV_SELECTOR = 'span.label-content.svelte-osbo5w.full-width div.crypto[data-testid="conversion-amount"]';
   const prices = {}, originalTexts = new WeakMap();
-
+  
   const getElements = () => ({
     excluded: document.evaluate('/html/body/div[1]/div[1]/div[2]/div[2]/div/div/div/div[4]/div/div[5]/label/span[2]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue,
     usd: ['/html/body/div[1]/div[2]/div[2]/div[4]/div/div/div/div[1]/div/div[2]/div/div/div/div/div/div[1]/div/div/div/div/div[1]/div[2]/div[1]/div/button','/html/body/div[1]/div[2]/div[2]/div[4]/div/div/div/div[1]/div/div[2]/div/div/div/div/div/div[1]/div/div/div/div/div[2]/div[1]/div[4]/div/div/div/button/div'].map(xpath => document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue).filter(Boolean)
@@ -51,17 +51,6 @@
     }
   };
 
-  const replaceNone = () => {
-    const elements = getElements();
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
-      acceptNode: n => shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : n.nodeValue.includes('None') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
-    });
-    let node;
-    while (node = walker.nextNode()) {
-      node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II');
-    }
-  };
-
   const setupTextObserver = () => {
     const observer = new MutationObserver(muts => {
       const elements = getElements();
@@ -78,32 +67,6 @@
         if (!shouldSkip(node, elements)) {
           observer.observe(node, { characterData: true });
           node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$');
-        }
-      } else if (node.nodeType === Node.ELEMENT_NODE) {
-        [...node.childNodes].forEach(observeNode);
-      }
-    };
-
-    observeNode(document.body);
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-  };
-
-  const setupNoneObserver = () => {
-    const observer = new MutationObserver(muts => {
-      const elements = getElements();
-      muts.forEach(m => {
-        if (m.type === 'characterData' && m.target.nodeValue.includes('None') && !shouldSkip(m.target, elements)) {
-          m.target.nodeValue = m.target.nodeValue.replace(/\bNone\b/g, 'Platinum II');
-        }
-      });
-    });
-
-    const observeNode = node => {
-      if (node.nodeType === Node.TEXT_NODE && node.nodeValue.includes('None')) {
-        const elements = getElements();
-        if (!shouldSkip(node, elements)) {
-          observer.observe(node, { characterData: true });
-          node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II');
         }
       } else if (node.nodeType === Node.ELEMENT_NODE) {
         [...node.childNodes].forEach(observeNode);
@@ -194,13 +157,11 @@
     convertAll();
     document.querySelectorAll('input[data-test="input-game-amount"]').forEach(hookInput);
     replaceARS();
-    replaceNone();
     replacePaths();
     setupTextObserver();
-    setupNoneObserver();
     setupDecimalLogger();
     setInterval(fetchPrices, 60000);
-    setInterval(() => { convertAll(); replaceARS(); replaceNone(); }, 1000);
+    setInterval(() => { convertAll(); replaceARS(); }, 1000);
     new MutationObserver(muts => {
       muts.forEach(m => {
         m.addedNodes.forEach(n => {
@@ -209,10 +170,9 @@
             n.querySelectorAll?.('input[data-test="input-game-amount"]').forEach(hookInput);
           }
         });
-        replaceARS();
-        replaceNone();
-        replacePaths();
       });
+      replaceARS();
+      replacePaths();
     }).observe(document.body, { childList: true, subtree: true });
   })();
 })();
