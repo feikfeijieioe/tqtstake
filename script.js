@@ -115,41 +115,30 @@
   };
 
   const pathReplacements = [
-    { 
-      from: { 
-        viewBox: "0 0 96 96", 
-        class: "svg-icon", 
-        style: "width: 1.25rem; height: 1.25rem;",
-        path: { 
-          fill: "#2F4553", 
-          d: "m48 14.595 8.49 15.75a13.68 13.68 0 0 0 9.66 7.08L84 40.635l-12.39 12.9a13.9 13.9 0 0 0-3.9 9.63q-.069.96 0 1.92l2.46 17.76-15.66-7.56a15 15 0 0 0-6.51-1.53 15 15 0 0 0-6.6 1.5l-15.57 7.53 2.46-17.76q.051-.93 0-1.86a13.9 13.9 0 0 0-3.9-9.63L12 40.635l17.64-3.21a13.62 13.62 0 0 0 9.84-7.02z"
-        }
-      }, 
-      to: { 
-        replaceWith: '<span class="wrap svelte-nc081s" style=""><svg fill="none" viewBox="0 0 96 96" class="svg-icon " style="font-size: var(--text-size-md);"><title></title><path fill="#6FDDE7" d="M45.237 83.04 23.797 93.4c-3.76 1.8-8-1.28-7.44-5.4l3.28-24.12c.2-1.56-.32-3.16-1.4-4.32L1.437 42c-2.88-3-1.24-8 2.84-8.72l23.96-4.32a5.28 5.28 0 0 0 3.68-2.68l11.52-21.44c1.96-3.64 7.2-3.64 9.16 0l11.52 21.44c.76 1.4 2.12 2.4 3.68 2.68l23.96 4.32c4.08.72 5.72 5.72 2.84 8.72l-16.84 17.56a5.33 5.33 0 0 0-1.4 4.32L79.637 88c.56 4.12-3.68 7.2-7.44 5.4l-21.44-10.36c-1.72-.84-3.76-.84-5.52 0"></path><path fill="#0F212E" d="M32.597 72.16v-36h10.88v36zm19.92 0v-36h10.88v36z"></path></svg></span>' 
-      }
-    }
+    { from: { fill: "#C69C6D", d: "m48.002 14.603 8.48 15.757c1.97 3.693 5.495 6.336 9.677 7.068l.08.012 17.64 3.2L71.48 53.56a13.84 13.84 0 0 0-3.884 9.63q0 .978.132 1.922l-.01-.072 2.44 17.758L54.52 75.24c-1.908-.934-4.15-1.48-6.52-1.48s-4.613.546-6.608 1.518l.09-.039-15.637 7.56 2.438-17.759c.078-.555.123-1.197.123-1.85 0-3.741-1.482-7.137-3.887-9.633l.003.003-12.518-12.92 17.638-3.2a13.64 13.64 0 0 0 9.842-7.008l.036-.072zm0-12.521h-.01a5.2 5.2 0 0 0-4.577 2.733l-.015.027L32 26.28a5.3 5.3 0 0 1-3.648 2.675l-.033.006-23.997 4.32C1.853 33.717 0 35.847 0 38.406a5.2 5.2 0 0 0 1.443 3.596L1.44 42l16.837 17.558a5.06 5.06 0 0 1 1.473 3.578q0 .458-.078.894l.006-.03L16.4 87.997a5.2 5.2 0 0 0 5.148 5.918h.012c.045.003.102.003.156.003.834 0 1.623-.207 2.31-.576l-.027.013 21.397-10.32a6.2 6.2 0 0 1 2.76-.638c1.004 0 1.952.236 2.795.653l-.036-.014 21.08 10.319a4.7 4.7 0 0 0 2.249.56h.033-.003c.051.003.111.003.171.003a5.2 5.2 0 0 0 5.144-5.948l.004.027-3.28-23.998a5.06 5.06 0 0 1 1.4-4.32l16.84-17.557a5.18 5.18 0 0 0 1.448-3.6c0-2.55-1.836-4.67-4.257-5.114l-.033-.006-23.997-4.32a5.3 5.3 0 0 1-3.705-2.768l-.015-.03-11.399-21.44a5.2 5.2 0 0 0-4.593-2.759h-.008z" }, to: { replaceWith: '<span class="wrap svelte-nc081s" style=""><svg fill="none" viewBox="0 0 96 96" class="svg-icon " style="font-size: var(--text-size-md);"><title></title><path fill="#6FDDE7" d="M45.237 83.04 23.797 93.4c-3.76 1.8-8-1.28-7.44-5.4l3.28-24.12c.2-1.56-.32-3.16-1.4-4.32L1.437 42c-2.88-3-1.24-8 2.84-8.72l23.96-4.32a5.28 5.28 0 0 0 3.68-2.68l11.52-21.44c1.96-3.64 7.2-3.64 9.16 0l11.52 21.44c.76 1.4 2.12 2.4 3.68 2.68l23.96 4.32c4.08.72 5.72 5.72 2.84 8.72l-16.84 17.56a5.33 5.33 0 0 0-1.4 4.32L79.637 88c.56 4.12-3.68 7.2-7.44 5.4l-21.44-10.36c-1.72-.84-3.76-.84-5.52 0"></path><path fill="#0F212E" d="M42.557 72V36h10.88v36z"></path></svg></span>' }}
   ];
 
-  const matches = (svg, path, attrs) => {
-    const svgMatches = attrs.viewBox === svg.getAttribute('viewBox') &&
-                      attrs.class === svg.getAttribute('class') &&
-                      attrs.style === svg.getAttribute('style');
-    const pathMatches = attrs.path && Object.entries(attrs.path).every(([k, v]) => k === 'd' ? path.getAttribute(k)?.startsWith(v) : path.getAttribute(k) === v);
-    return svgMatches && pathMatches;
-  };
+  const deleteAttrs = { fill: "#276304", "fill-rule": "evenodd", d: "m27.8 62.4-1.24-5.08H16.52" };
+  const matches = (el, attrs) => Object.entries(attrs).every(([k, v]) => k === 'd' ? el.getAttribute(k)?.startsWith(v) : el.getAttribute(k) === v);
 
   const replacePaths = () => {
     const { excluded } = getElements();
-    document.querySelectorAll('svg').forEach(svg => {
-      if (shouldSkip(svg, { excluded })) return;
-      const path = svg.querySelector('path');
-      if (!path) return;
-      const replacement = pathReplacements.find(r => matches(svg, path, r.from));
-      if (replacement && replacement.to.replaceWith) {
-        const span = document.createElement('span');
-        span.innerHTML = replacement.to.replaceWith;
-        svg.replaceWith(span.firstChild);
+    document.querySelectorAll('path').forEach(path => {
+      if (shouldSkip(path, { excluded })) return;
+      const replacement = pathReplacements.find(r => matches(path, r.from));
+      if (replacement) {
+        if (replacement.to.replaceWith) {
+          const parentSvg = path.closest('svg');
+          if (parentSvg) {
+            const span = document.createElement('span');
+            span.innerHTML = replacement.to.replaceWith;
+            parentSvg.replaceWith(span.firstChild);
+          }
+        } else {
+          Object.entries(replacement.to).forEach(([k, v]) => path.setAttribute(k, v));
+        }
+      } else if (matches(path, deleteAttrs)) {
+        path.remove();
       }
     });
   };
@@ -209,7 +198,7 @@
     setupNoneObserver();
     setupDecimalLogger();
     setInterval(fetchPrices, 60000);
-    setInterval(() => { convertAll(); replaceARS(); replaceNone(); replacePaths(); }, 1000);
+    setInterval(() => { convertAll(); replaceARS(); replaceNone(); }, 1000);
     new MutationObserver(muts => {
       muts.forEach(m => {
         m.addedNodes.forEach(n => {
