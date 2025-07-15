@@ -36,9 +36,9 @@
   };
 
   const convertAll = () => {
-    const val = document.querySelector('input[data-test="input-game-amount"]')?.value || '0'; // Valeur par défaut 0 si vide
-    const amountInUSD = Math.max(0, parseFloat(val)) || 0; // Convertir en nombre, éviter null
-    console.log('Input value (USD):', amountInUSD); // Débogage
+    const val = document.querySelector('input[data-test="input-game-amount"]')?.value || '0';
+    const amountInUSD = Math.max(0, parseFloat(val)) || 0;
+    console.log('Input value (USD):', amountInUSD);
     document.querySelectorAll(CONV_SELECTOR).forEach(div => {
       if (!originalTexts.has(div)) originalTexts.set(div, div.textContent);
       const curMatch = div.textContent.match(/([A-Z]{2,5})$/)?.[1] || '';
@@ -46,9 +46,9 @@
       const price = prices[cur];
       if (cur === 'ltc' && amountInUSD > 0 && price) {
         const convertedAmount = (amountInUSD / price).toFixed(8);
-        div.textContent = `${convertedAmount} LTC`;
+        div.textContent = `${convertedAmount} LTC (≈ ${amountInUSD.toFixed(2)} USD)`; // Forcer USD comme référence
       } else if (amountInUSD > 0 && price) {
-        div.textContent = `${(amountInUSD / price).toFixed(8)} ${curMatch}`;
+        div.textContent = `${(amountInUSD / price).toFixed(8)} ${curMatch} (≈ ${amountInUSD.toFixed(2)} USD)`;
       } else {
         div.textContent = originalTexts.get(div);
       }
@@ -60,7 +60,6 @@
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
       acceptNode: n => {
         if (shouldSkip(n, elements)) return NodeFilter.FILTER_REJECT;
-        if (n.nodeValue.includes('LTC')) return NodeFilter.FILTER_REJECT;
         return n.nodeValue.includes('ARS') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
       }
     });
@@ -74,8 +73,14 @@
     const observer = new MutationObserver(muts => {
       const elements = getElements();
       muts.forEach(m => {
-        if (m.type === 'characterData' && m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements) && !m.target.nodeValue.includes('LTC')) {
+        if (m.type === 'characterData' && m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
           m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '$');
+        } else if (m.type === 'childList' && m.addedNodes.length) {
+          m.addedNodes.forEach(n => {
+            if (n.nodeType === Node.TEXT_NODE && n.nodeValue.includes('ARS') && !shouldSkip(n, elements)) {
+              n.nodeValue = n.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(n, elements) ? 'USD' : '$');
+            }
+          });
         }
       });
     });
@@ -83,7 +88,7 @@
     const observeNode = node => {
       if (node.nodeType === Node.TEXT_NODE && node.nodeValue.includes('ARS')) {
         const elements = getElements();
-        if (!shouldSkip(node, elements) && !node.nodeValue.includes('LTC')) {
+        if (!shouldSkip(node, elements)) {
           observer.observe(node, { characterData: true });
           node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$');
         }
