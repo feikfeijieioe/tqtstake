@@ -54,11 +54,11 @@
   const replaceNoneAndBronze = () => {
     const elements = getElements();
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
-      acceptNode: n => shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : n.nodeValue.includes('None') || n.nodeValue.includes('Bronze') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+      acceptNode: n => shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : n.nodeValue.includes('None') || n.nodeValue.includes('Bronze') || n.nodeValue.includes('Platinum I') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
     });
     let node;
     while (node = walker.nextNode()) {
-      node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
+      node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III').replace(/\bPlatinum I\b/g, 'Platinum III');
     }
   };
 
@@ -70,21 +70,22 @@
           if (m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
             m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '$');
           }
-          if ((m.target.nodeValue.includes('None') || m.target.nodeValue.includes('Bronze')) && !shouldSkip(m.target, elements)) {
-            m.target.nodeValue = m.target.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
+          if ((m.target.nodeValue.includes('None') || m.target.nodeValue.includes('Bronze') || m.target.nodeValue.includes('Platinum I')) && !shouldSkip(m.target, elements)) {
+            m.target.nodeValue = m.target.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III').replace(/\bPlatinum I\b/g, 'Platinum III');
           }
         }
       });
     });
 
     const observeNode = node => {
-      if (node.nodeType === Node.TEXT_NODE && (node.nodeValue.includes('ARS') || node.nodeValue.includes('None') || node.nodeValue.includes('Bronze'))) {
+      if (node.nodeType === Node.TEXT_NODE && (node.nodeValue.includes('ARS') || node.nodeValue.includes('None') || node.nodeValue.includes('Bronze') || node.nodeValue.includes('Platinum I'))) {
         const elements = getElements();
         if (!shouldSkip(node, elements)) {
           observer.observe(node, { characterData: true });
           node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$')
                                        .replace(/\bNone\b/g, 'Platinum II')
-                                       .replace(/\bBronze\b/g, 'Platinum III');
+                                       .replace(/\bBronze\b/g, 'Platinum III')
+                                       .replace(/\bPlatinum I\b/g, 'Platinum III');
         }
       } else if (node.nodeType === Node.ELEMENT_NODE) {
         [...node.childNodes].forEach(observeNode);
