@@ -109,7 +109,8 @@ const pathReplacements = [
   const replacePaths = () => {
     const { excluded } = getElements();
     document.querySelectorAll('path').forEach(path => {
-      if (shouldSkip(path, { excluded })) return;
+      // Skip if path is within currency-ars-label to preserve its structure
+      if (shouldSkip(path, { excluded }) || path.closest('[data-test="currency-ars-label"]')) return;
       const replacement = pathReplacements.find(r => matches(path, r.from));
       if (replacement) {
         if (replacement.to.replaceWith) {
