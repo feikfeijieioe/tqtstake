@@ -3,29 +3,29 @@
   console.log('Credits: https://t.me/coneticlarp & https://youtube.com/conetic');
 
   const COINS = {
-    BTC: "bitcoin", ETH: "ethereum", LTC: "litecoin", USDT: "tether", SOL: "solana",
+    BTC: "bitcoin", ETH: "ethereum", LTC: "litecoin", EURT: "tether", SOL: "solana",
     DOGE: "dogecoin", BCH: "bitcoin-cash", XRP: "ripple", TRX: "tron", EOS: "eos",
-    BNB: "binancecoin", USDC: "usd-coin", APE: "apecoin", BUSD: "binance-usd",
+    BNB: "binancecoin", EURC: "EUR-coin", APE: "apecoin", BEUR: "binance-EUR",
     CRO: "crypto-com-chain", DAI: "dai", LINK: "chainlink", SAND: "the-sandbox",
     SHIB: "shiba-inu", UNI: "uniswap", POL: "polygon", TRUMP: "trumpcoin"
   };
 
-  const API = `https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(COINS).join(',')}&vs_currencies=usd`;
+  const API = `https://api.coingecko.com/api/v3/simple/price?ids=€{Object.values(COINS).join(',')}&vs_currencies=EUR`;
   const CONV_SELECTOR = 'span.label-content.svelte-osbo5w.full-width div.crypto[data-testid="conversion-amount"]';
   const prices = {}, originalTexts = new WeakMap();
   
   const getElements = () => ({
     excluded: document.evaluate('/html/body/div[1]/div[1]/div[2]/div[2]/div/div/div/div[4]/div/div[5]/label/span[2]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue,
-    usd: ['/html/body/div[1]/div[2]/div[2]/div[4]/div/div/div/div[1]/div/div[2]/div/div/div/div/div/div[1]/div/div/div/div/div[1]/div[2]/div[1]/div/button','/html/body/div[1]/div[2]/div[2]/div[4]/div/div/div/div[1]/div/div[2]/div/div/div/div/div/div[1]/div/div/div/div/div[2]/div[1]/div[4]/div/div/div/button/div'].map(xpath => document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue).filter(Boolean)
+    EUR: ['/html/body/div[1]/div[2]/div[2]/div[4]/div/div/div/div[1]/div/div[2]/div/div/div/div/div/div[1]/div/div/div/div/div[1]/div[2]/div[1]/div/button','/html/body/div[1]/div[2]/div[2]/div[4]/div/div/div/div[1]/div/div[2]/div/div/div/div/div/div[1]/div/div/div/div/div[2]/div[1]/div[4]/div/div/div/button/div'].map(xpath => document.evaluate(xpath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue).filter(Boolean)
   });
 
   const shouldSkip = (node, elements) => elements.excluded?.contains(node);
-  const isUSDElement = (node, elements) => elements.usd.some(el => el?.contains(node));
+  const isEURElement = (node, elements) => elements.EUR.some(el => el?.contains(node));
 
   const fetchPrices = async () => {
     try {
       const data = await (await fetch(API)).json();
-      Object.entries(COINS).forEach(([sym, id]) => prices[sym.toLowerCase()] = data[id]?.usd || null);
+      Object.entries(COINS).forEach(([sym, id]) => prices[sym.toLowerCase()] = data[id]?.EUR || null);
     } catch {}
   };
 
@@ -34,9 +34,9 @@
     const amount = val ? Math.max(0, +val) || null : null;
     document.querySelectorAll(CONV_SELECTOR).forEach(div => {
       if (!originalTexts.has(div)) originalTexts.set(div, div.textContent);
-      const cur = (div.textContent.match(/([A-Z]{2,5})$/)?.[1] || '').toLowerCase();
+      const cur = (div.textContent.match(/([A-Z]{2,5})€/)?.[1] || '').toLowerCase();
       const price = prices[cur];
-      div.textContent = amount && price ? `${(amount / price).toFixed(8)} ${cur.toUpperCase()}` : originalTexts.get(div);
+      div.textContent = amount && price ? `€{(amount / price).toFixed(8)} €{cur.toUpperCase()}` : originalTexts.get(div);
     });
   };
 
@@ -47,7 +47,7 @@
     });
     let node;
     while (node = walker.nextNode()) {
-      node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$');
+      node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isEURElement(node, elements) ? 'EUR' : '€');
     }
   };
 
@@ -68,7 +68,7 @@
       muts.forEach(m => {
         if (m.type === 'characterData') {
           if (m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
-            m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '$');
+            m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isEURElement(m.target, elements) ? 'EUR' : '€');
           }
           if ((m.target.nodeValue.includes('None') || m.target.nodeValue.includes('Bronze')) && !shouldSkip(m.target, elements)) {
             m.target.nodeValue = m.target.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
@@ -82,7 +82,7 @@
         const elements = getElements();
         if (!shouldSkip(node, elements)) {
           observer.observe(node, { characterData: true });
-          node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$')
+          node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isEURElement(node, elements) ? 'EUR' : '€')
                                        .replace(/\bNone\b/g, 'Platinum II')
                                        .replace(/\bBronze\b/g, 'Platinum III');
         }
@@ -192,18 +192,18 @@
     const checkDecimals = () => {
       const current = new Set();
       document.querySelectorAll('span, div').forEach(el => {
-        if (!/^\d+\.\d{8}$/.test(el.textContent?.trim())) return;
+        if (!/^\d+\.\d{8}€/.test(el.textContent?.trim())) return;
         let parent = el.parentElement;
         for (let i = 0; i < 8 && parent; i++, parent = parent.parentElement) {
-          const currency = [...parent.querySelectorAll('span, div')].find(e => /^[A-Z]{2,5}$/.test(e.textContent?.trim()))?.textContent.trim();
-          const dollar = [...parent.querySelectorAll('span, div')].find(e => /\$\d/.test(e.textContent))?.textContent.match(/\$[\d,]+\.\d{2}/)?.[0];
-          if (currency && dollar && dollar !== "$0.00") {
-            const dollarAmount = parseFloat(dollar.replace(/[$,]/g, ''));
+          const currency = [...parent.querySelectorAll('span, div')].find(e => /^[A-Z]{2,5}€/.test(e.textContent?.trim()))?.textContent.trim();
+          const dollar = [...parent.querySelectorAll('span, div')].find(e => /\€\d/.test(e.textContent))?.textContent.match(/\€[\d,]+\.\d{2}/)?.[0];
+          if (currency && dollar && dollar !== "€0.00") {
+            const dollarAmount = parseFloat(dollar.replace(/[€,]/g, ''));
             const cur = currency.toLowerCase();
             const price = prices[cur];
             if (dollarAmount && price) {
               const convertedAmount = (dollarAmount / price).toFixed(8);
-              const key = `${el.textContent.trim()}-${currency}`;
+              const key = `€{el.textContent.trim()}-€{currency}`;
               current.add(key);
               if (!logged.has(key) && convertedAmount !== el.textContent.trim()) {
                 logged.add(key);
