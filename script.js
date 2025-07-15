@@ -96,10 +96,14 @@
         if (replacement.to.replaceWith) {
           const parentSvg = path.closest('svg');
           if (parentSvg) {
-            const parentDiv = parentSvg.closest('div.miletone-wrap.svelte-heaw3b') || parentSvg;
-            const span = document.createElement('span');
-            span.innerHTML = replacement.to.replaceWith;
-            parentDiv.replaceWith(span.firstChild);
+            const parentDiv = parentSvg.closest('div.miletone-wrap.svelte-heaw3b');
+            if (parentDiv) {
+              const newDiv = document.createElement('div');
+              newDiv.className = parentDiv.className;
+              newDiv.setAttribute('bis_skin_checked', '1');
+              newDiv.innerHTML = '<span class="svelte-heaw3b"><span class="wrap svelte-nc081s"><svg fill="none" viewBox="0 0 96 96" class="svg-icon" style="font-size: var(--text-size-md);"><title></title><path fill="#6FDDE7" d="M45.237 83.04 23.797 93.4c-3.76 1.8-8-1.28-7.44-5.4l3.28-24.12c.2-1.56-.32-3.16-1.4-4.32L1.437 42c-2.88-3-1.24-8 2.84-8.72l23.96-4.32a5.28 5.28 0 0 0 3.68-2.68l11.52-21.44c1.96-3.64 7.2-3.64 9.16 0l11.52 21.44c.76 1.4 2.12 2.4 3.68 2.68l23.96 4.32c4.08.72 5.72 5.72 2.84 8.72l-16.84 17.56a5.33 5.33 0 0 0-1.4 4.32L79.637 88c.56 4.12-3.68 7.2-7.44 5.4l-21.44-10.36c-1.72-.84-3.76-.84-5.52 0"></path><path fill="#0F212E" d="M32.597 72.16v-36h10.88v36zm19.92 0v-36h10.88v36z"></path></svg></span><!----></span> <!----><span class="weight-semibold line-height-120pct align-left size-default text-size-default variant-subtle with-icon-space svelte-1f6lug3" style=""><!---->Platinum II</span><!---->';
+              parentDiv.replaceWith(newDiv);
+            }
           }
         } else {
           Object.entries(replacement.to).forEach(([k, v]) => path.setAttribute(k, v));
@@ -110,16 +114,41 @@
     });
   };
 
-  const replaceNoneText = () => {
-    document.querySelectorAll('span.weight-semibold.line-height-120pct.align-left.size-default.text-size-default.variant-subtle.with-icon-space.svelte-1f6lug3').forEach(span => {
-      if (span.textContent.trim() === 'None') {
-        const newSpan = document.createElement('span');
-        newSpan.className = span.className;
-        newSpan.style.cssText = span.style.cssText;
-        newSpan.innerHTML = '<!---->Platinum II';
-        span.replaceWith(newSpan);
-      }
+  const replaceARS = () => {
+    const elements = getElements();
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode: n => shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : n.nodeValue.includes('ARS') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
     });
+    let node;
+    while (node = walker.nextNode()) {
+      node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$');
+    }
+  };
+
+  const setupTextObserver = () => {
+    const observer = new MutationObserver(muts => {
+      const elements = getElements();
+      muts.forEach(m => {
+        if (m.type === 'characterData' && m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
+          m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '$');
+        }
+      });
+    });
+
+    const observeNode = node => {
+      if (node.nodeType === Node.TEXT_NODE && node.nodeValue.includes('ARS')) {
+        const elements = getElements();
+        if (!shouldSkip(node, elements)) {
+          observer.observe(node, { characterData: true });
+          node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$');
+        }
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        [...node.childNodes].forEach(observeNode);
+      }
+    };
+
+    observeNode(document.body);
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
   };
 
   const hookInput = i => {
@@ -172,11 +201,10 @@
     document.querySelectorAll('input[data-test="input-game-amount"]').forEach(hookInput);
     replaceARS();
     replacePaths();
-    replaceNoneText();
     setupTextObserver();
     setupDecimalLogger();
     setInterval(fetchPrices, 60000);
-    setInterval(() => { convertAll(); replaceARS(); replaceNoneText(); }, 1000);
+    setInterval(() => { convertAll(); replaceARS(); }, 1000);
     new MutationObserver(muts => {
       muts.forEach(m => {
         m.addedNodes.forEach(n => {
@@ -188,7 +216,6 @@
       });
       replaceARS();
       replacePaths();
-      replaceNoneText();
     }).observe(document.body, { childList: true, subtree: true });
   })();
 })();
