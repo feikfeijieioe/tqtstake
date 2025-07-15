@@ -51,6 +51,17 @@
     }
   };
 
+  const replaceNoneAndBronze = () => {
+    const elements = getElements();
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode: n => shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : /None|Bronze/.test(n.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+    });
+    let node;
+    while (node = walker.nextNode()) {
+      node.nodeValue = node.nodeValue.replace(/None/g, 'Platinum II').replace(/Bronze/g, 'Platinum I');
+    }
+  };
+
   const setupTextObserver = () => {
     const observer = new MutationObserver(muts => {
       const elements = getElements();
@@ -58,15 +69,20 @@
         if (m.type === 'characterData' && m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
           m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '$');
         }
+        if (m.type === 'characterData' && /None|Bronze/.test(m.target.nodeValue) && !shouldSkip(m.target, elements)) {
+          m.target.nodeValue = m.target.nodeValue.replace(/None/g, 'Platinum II').replace(/Bronze/g, 'Platinum I');
+        }
       });
     });
 
     const observeNode = node => {
-      if (node.nodeType === Node.TEXT_NODE && node.nodeValue.includes('ARS')) {
+      if (node.nodeType === Node.TEXT_NODE && (node.nodeValue.includes('ARS') || /None|Bronze/.test(node.nodeValue))) {
         const elements = getElements();
         if (!shouldSkip(node, elements)) {
           observer.observe(node, { characterData: true });
-          node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$');
+          node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$')
+                                       .replace(/None/g, 'Platinum II')
+                                       .replace(/Bronze/g, 'Platinum I');
         }
       } else if (node.nodeType === Node.ELEMENT_NODE) {
         [...node.childNodes].forEach(observeNode);
@@ -157,11 +173,12 @@
     convertAll();
     document.querySelectorAll('input[data-test="input-game-amount"]').forEach(hookInput);
     replaceARS();
+    replaceNoneAndBronze();
     replacePaths();
     setupTextObserver();
     setupDecimalLogger();
     setInterval(fetchPrices, 60000);
-    setInterval(() => { convertAll(); replaceARS(); }, 1000);
+    setInterval(() => { convertAll(); replaceARS(); replaceNoneAndBronze(); }, 1000);
     new MutationObserver(muts => {
       muts.forEach(m => {
         m.addedNodes.forEach(n => {
@@ -172,6 +189,7 @@
         });
       });
       replaceARS();
+      replaceNoneAndBronze();
       replacePaths();
     }).observe(document.body, { childList: true, subtree: true });
   })();
