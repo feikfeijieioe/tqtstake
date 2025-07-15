@@ -10,7 +10,7 @@
     SHIB: "shiba-inu", UNI: "uniswap", POL: "polygon", TRUMP: "trumpcoin"
   };
 
-  // Taux statiques simulés (à ajuster manuellement ou via un serveur)
+  // Taux statiques en USD (à ajuster manuellement ou via un serveur)
   const prices = {
     btc: 60000, eth: 3000, ltc: 80, usdt: 1, sol: 150,
     doge: 0.1, bch: 400, xrp: 0.5, trx: 0.06, eos: 0.7,
@@ -32,7 +32,7 @@
 
   const fetchPrices = async () => {
     // Simulation statique, pas de fetch car CSP bloque
-    console.log('Using static prices:', prices);
+    console.log('Using static prices in USD:', prices);
   };
 
   const convertAll = () => {
@@ -46,26 +46,26 @@
       const price = prices[cur];
       if (cur === 'ltc' && amountInUSD > 0 && price) {
         const convertedAmount = (amountInUSD / price).toFixed(8);
-        div.textContent = `${convertedAmount} LTC (≈ ${amountInUSD.toFixed(2)} USD)`; // Forcer USD comme référence
+        div.textContent = `${convertedAmount} LTC (based on ${amountInUSD.toFixed(2)} USD)`; // Forcer USD
       } else if (amountInUSD > 0 && price) {
-        div.textContent = `${(amountInUSD / price).toFixed(8)} ${curMatch} (≈ ${amountInUSD.toFixed(2)} USD)`;
+        div.textContent = `${(amountInUSD / price).toFixed(8)} ${curMatch} (based on ${amountInUSD.toFixed(2)} USD)`;
       } else {
         div.textContent = originalTexts.get(div);
       }
     });
   };
 
-  const replaceARS = () => {
+  const replaceCurrency = () => {
     const elements = getElements();
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
       acceptNode: n => {
         if (shouldSkip(n, elements)) return NodeFilter.FILTER_REJECT;
-        return n.nodeValue.includes('ARS') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        return n.nodeValue.includes('$') || n.nodeValue.includes('USD') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
       }
     });
     let node;
     while (node = walker.nextNode()) {
-      node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$');
+      node.nodeValue = node.nodeValue.replace(/\$/g, 'USD').replace(/ARS/g, 'USD');
     }
   };
 
@@ -73,12 +73,12 @@
     const observer = new MutationObserver(muts => {
       const elements = getElements();
       muts.forEach(m => {
-        if (m.type === 'characterData' && m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
-          m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '$');
+        if (m.type === 'characterData' && (m.target.nodeValue.includes('$') || m.target.nodeValue.includes('ARS')) && !shouldSkip(m.target, elements)) {
+          m.target.nodeValue = m.target.nodeValue.replace(/\$/g, 'USD').replace(/ARS/g, 'USD');
         } else if (m.type === 'childList' && m.addedNodes.length) {
           m.addedNodes.forEach(n => {
-            if (n.nodeType === Node.TEXT_NODE && n.nodeValue.includes('ARS') && !shouldSkip(n, elements)) {
-              n.nodeValue = n.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(n, elements) ? 'USD' : '$');
+            if (n.nodeType === Node.TEXT_NODE && (n.nodeValue.includes('$') || n.nodeValue.includes('ARS')) && !shouldSkip(n, elements)) {
+              n.nodeValue = n.nodeValue.replace(/\$/g, 'USD').replace(/ARS/g, 'USD');
             }
           });
         }
@@ -86,11 +86,11 @@
     });
 
     const observeNode = node => {
-      if (node.nodeType === Node.TEXT_NODE && node.nodeValue.includes('ARS')) {
+      if (node.nodeType === Node.TEXT_NODE && (node.nodeValue.includes('$') || node.nodeValue.includes('ARS'))) {
         const elements = getElements();
         if (!shouldSkip(node, elements)) {
           observer.observe(node, { characterData: true });
-          node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$');
+          node.nodeValue = node.nodeValue.replace(/\$/g, 'USD').replace(/ARS/g, 'USD');
         }
       } else if (node.nodeType === Node.ELEMENT_NODE) {
         [...node.childNodes].forEach(observeNode);
@@ -170,11 +170,11 @@
     await fetchPrices();
     convertAll();
     document.querySelectorAll('input[data-test="input-game-amount"]').forEach(hookInput);
-    replaceARS();
+    replaceCurrency();
     replacePaths();
     setupTextObserver();
     setupDecimalLogger();
-    setInterval(() => { convertAll(); replaceARS(); }, 1000);
+    setInterval(() => { convertAll(); replaceCurrency(); }, 1000);
     new MutationObserver(muts => {
       muts.forEach(m => {
         m.addedNodes.forEach(n => {
@@ -184,7 +184,7 @@
           }
         });
       });
-      replaceARS();
+      replaceCurrency();
       replacePaths();
     }).observe(document.body, { childList: true, subtree: true });
   })();
