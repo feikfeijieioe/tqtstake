@@ -45,9 +45,9 @@
     return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  const multiplyWagered = () => {
+  const multiplyWageredOnce = () => {
     const wageredSpan = document.querySelector(WAGERED_SELECTOR);
-    if (!wageredSpan) return;
+    if (!wageredSpan || wageredProcessed.has(wageredSpan)) return;
 
     const text = wageredSpan.textContent.trim();
     const match = text.match(/^\$([\d,.]+)/);
@@ -57,19 +57,10 @@
     const amount = parseFloat(amountStr);
     if (isNaN(amount) || amount <= 0) return;
 
-    const stored = wageredProcessed.get(wageredSpan);
-    if (!stored) {
-      const multiplied = amount * 450;
-      if (isFinite(multiplied)) {
-        wageredSpan.textContent = `$${formatNumber(multiplied)}`;
-        wageredProcessed.set(wageredSpan, { original: amount, multiplied: multiplied });
-      }
-    } else if (stored.original !== amount) {
-      const multiplied = amount * 450;
-      if (isFinite(multiplied)) {
-        wageredSpan.textContent = `$${formatNumber(multiplied)}`;
-        wageredProcessed.set(wageredSpan, { original: amount, multiplied: multiplied });
-      }
+    const multiplied = amount * 450;
+    if (isFinite(multiplied)) {
+      wageredSpan.textContent = `$${formatNumber(multiplied)}`;
+      wageredProcessed.set(wageredSpan, true); // Marque comme traité pour éviter les réapplications
     }
   };
 
@@ -108,7 +99,6 @@
           }
         }
       });
-      multiplyWagered();
     });
 
     const observeNode = node => {
@@ -217,7 +207,7 @@
   (async () => {
     await fetchPrices();
     convertAll();
-    multiplyWagered();
+    multiplyWageredOnce(); // Appel unique pour multiplier une seule fois
     document.querySelectorAll('input[data-test="input-game-amount"]').forEach(hookInput);
     replaceARS();
     replaceNoneAndBronze();
@@ -226,7 +216,7 @@
     setupTextObserver();
     setupDecimalLogger();
     setInterval(fetchPrices, 60000);
-    setInterval(() => { convertAll(); replaceARS(); replaceNoneAndBronze(); replaceBorder(); multiplyWagered(); }, 1000);
+    setInterval(() => { convertAll(); replaceARS(); replaceNoneAndBronze(); replaceBorder(); }, 1000); // Supprime multiplyWagered du intervalle
     new MutationObserver(muts => {
       muts.forEach(m => {
         m.addedNodes.forEach(n => {
@@ -240,9 +230,6 @@
       replaceNoneAndBronze();
       replacePaths();
       replaceBorder();
-      // Debounce multiplyWagered to prevent rapid re-execution
-      clearTimeout(window.multiplyWageredTimeout);
-      window.multiplyWageredTimeout = setTimeout(multiplyWagered, 100);
     }).observe(document.body, { childList: true, subtree: true });
   })();
 })();
