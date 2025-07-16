@@ -13,8 +13,7 @@
   const API = `https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(COINS).join(',')}&vs_currencies=usd`;
   const CONV_SELECTOR = 'div.crypto[data-testid="conversion-amount"]'; 
   const WAGERED_SELECTOR = 'div.currency span.weight-bold.line-height-default.align-left.numeric.svelte-1f6lug3';
-  const STATS_SELECTOR = 'div.card.svelte-1u84h7c span.weight-bold.line-height-120pct.align-left.size-md.text-size-md.variant-highlighted.numeric';
-  const prices = {}, originalTexts = new WeakMap(), wageredProcessed = new WeakSet(), originalLTCTexts = new WeakMap(), statsProcessed = new WeakSet();
+  const prices = {}, originalTexts = new WeakMap(), wageredProcessed = new WeakSet(), originalLTCTexts = new WeakMap();
 
   const getElements = () => ({
     excluded: document.evaluate('/html/body/div[1]/div[1]/div[2]/div[2]/div/div/div/div[4]/div/div[5]/label/span[2]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue,
@@ -121,50 +120,6 @@
           wageredSpan.textContent = `$${formatNumber(multiplied)}`;
           wageredProcessed.add(wageredSpan);
           console.log(`Updated wagered amount to: $${formatNumber(multiplied)}`);
-        }
-      }
-    });
-  };
-
-  const multiplyStats = () => {
-    console.log(' multiplyStats en cours');
-    const statsSpans = document.querySelectorAll(STATS_SELECTOR);
-    statsSpans.forEach(span => {
-      if (!statsProcessed.has(span)) {
-        const text = span.textContent.trim();
-        const parent = span.closest('div.card.svelte-1u84h7c');
-        if (!parent) {
-          console.log(`No parent card found for span: "${text}"`);
-          return;
-        }
-        const labelSpan = parent.querySelector('span.weight-semibold');
-        if (!labelSpan) {
-          console.log(`No label span found for span: "${text}"`);
-          return;
-        }
-        const label = labelSpan.textContent.trim();
-        const amountStr = text.replace(/,/g, '');
-        const amount = parseInt(amountStr, 10);
-        if (isNaN(amount) || amount <= 0) {
-          console.log(`Invalid amount parsed: ${amount} from "${text}"`);
-          return;
-        }
-
-        let multiplier;
-        if (label === 'Total Bets') {
-          multiplier = 4.97;
-        } else if (label === 'Number of Wins' || label === 'Number of Losses') {
-          multiplier = 5;
-        } else {
-          console.log(`Unknown label: "${label}"`);
-          return;
-        }
-
-        const multiplied = amount * multiplier;
-        if (isFinite(multiplied)) {
-          span.textContent = multiplied.toLocaleString('en-US');
-          statsProcessed.add(span);
-          console.log(`Updated ${label} to: ${multiplied.toLocaleString('en-US')}`);
         }
       }
     });
@@ -350,12 +305,6 @@
                 console.log('Processed new wagered span');
               }
             });
-            n.querySelectorAll?.(STATS_SELECTOR).forEach(statSpan => {
-              if (!statsProcessed.has(statSpan)) {
-                multiplyStats();
-                console.log('Processed new stats span');
-              }
-            });
             n.querySelectorAll?.('path').forEach(path => replacePaths());
             n.querySelectorAll?.('div.flex.flex-col.justify-center.rounded-lg.w-full.bg-grey-700').forEach(div => replaceBorder());
             n.querySelectorAll?.('div.p-4.rounded-lg.bg-grey-700.gap-2\\.5').forEach(div => {
@@ -368,17 +317,18 @@
                 ltcChanged = true;
               }
             });
-            n.querySelectorAll?.('span.weight-semibold.line-height-default.align-left.size-md.text-size-md').forEach(span => {
-              if (span.textContent.trim() === 'roimatt' || span.textContent.trim() === window.customUsername) {
-                span.textContent = window.customUsername;
-                console.log(`Updated username span to: ${window.customUsername}`);
-              }
+            const walker = document.createTreeWalker(n, NodeFilter.SHOW_TEXT, {
+              acceptNode: node => (node.nodeValue.includes('None') || node.nodeValue.includes('Bronze')) && !shouldSkip(node, elements) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
             });
+            let node;
+            while (node = walker.nextNode()) {
+              node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
+              console.log(`Replaced None/Bronze in new node: "${node.nodeValue}"`);
+            }
           }
         });
       });
       multiplyWagered();
-      multiplyStats();
       replacePaths();
       replaceBorder();
       replaceARS();
@@ -407,56 +357,11 @@
     requestAnimationFrame(check);
   };
 
-  const createUsernamePrompt = () => {
-    const modal = document.createElement('div');
-    modal.id = 'usernameModal';
-    modal.style.cssText = `
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(29, 48, 60, 0.9);
-      display: flex; justify-content: center; align-items: center; z-index: 9999;
-    `;
-    modal.innerHTML = `
-      <div style="background: #1D303C; padding: 24px; border-radius: 8px; border: 2px solid #6FDDE7; max-width: 400px; width: 90%; text-align: center; font-family: Arial, sans-serif;">
-        <h2 style="color: #6FDDE7; font-size: 24px; margin-bottom: 16px;">Enter Your Username</h2>
-        <input id="usernameInput" type="text" placeholder="Your username" style="width: 100%; padding: 12px; border: 1px solid #6FDDE7; border-radius: 4px; background: #0A1D29; color: white; font-size: 16px; margin-bottom: 16px;">
-        <button id="submitUsername" style="background: #6FDDE7; color: #0A1D29; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">Submit</button>
-      </div>
-    `;
-    document.body.appendChild(modal);
-
-    const input = document.getElementById('usernameInput');
-    const button = document.getElementById('submitUsername');
-
-    const submitUsername = () => {
-      const username = input.value.trim();
-      if (username) {
-        window.customUsername = username;
-        document.querySelectorAll('span.weight-semibold.line-height-default.align-left.size-md.text-size-md').forEach(span => {
-          if (span.textContent.trim() === 'roimatt') {
-            span.textContent = username;
-            console.log(`Updated username to: ${username}`);
-          }
-        });
-        modal.remove();
-        console.log('Username modal removed');
-      } else {
-        input.style.borderColor = '#FF5555';
-        input.placeholder = 'Please enter a username';
-      }
-    };
-
-    button.addEventListener('click', submitUsername);
-    input.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') submitUsername();
-    });
-  };
-
   (async () => {
     console.log('Script initialization');
-    createUsernamePrompt();
     await fetchPrices();
     convertAll();
     multiplyWagered();
-    multiplyStats();
     multiplyLTC();
     waitForLTCElement();
     document.querySelectorAll('input[data-test="input-game-amount"]').forEach(hookInput);
@@ -471,7 +376,6 @@
       console.log('Periodic check');
       convertAll();
       multiplyWagered();
-      multiplyStats();
       replaceARS();
       replaceNoneAndBronze();
       replacePaths();
