@@ -27,32 +27,64 @@
     try {
       const data = await (await fetch(API)).json();
       Object.entries(COINS).forEach(([sym, id]) => prices[sym.toLowerCase()] = data[id]?.usd || null);
-    } catch {}
+    } catch {
+      console.log('Failed to fetch prices from CoinGecko API');
+    }
   };
 
   const convertAll = () => {
+    console.log('Running convertAll');
     const val = document.querySelector('input[data-test="input-game-amount"]')?.value;
     const amount = val ? Math.max(0, +val) || null : null;
     document.querySelectorAll(CONV_SELECTOR).forEach(div => {
       if (!originalTexts.has(div)) originalTexts.set(div, div.textContent);
       const cur = (div.textContent.match(/([A-Z]{2,5})$/)?.[1] || '').toLowerCase();
       const price = prices[cur];
-      div.textContent = amount && price ? `${(amount / price).toFixed(8)} ${cur.toUpperCase()}` : originalTexts.get(div);
+      const newText = amount && price ? `${(amount / price).toFixed(8)} ${cur.toUpperCase()}` : originalTexts.get(div);
+      div.textContent = newText;
+      console.log(`Converted ${div.textContent} to ${newText}`);
     });
   };
 
   const multiplyLTC = () => {
-    document.querySelectorAll(CONV_SELECTOR).forEach(div => {
+    console.log('Running multiplyLTC');
+    const ltcElements = document.querySelectorAll(CONV_SELECTOR);
+    console.log(`Found ${ltcElements.length} elements matching ${CONV_SELECTOR}`);
+
+    ltcElements.forEach(div => {
       const text = div.textContent.trim();
-      if (!text.includes('LTC')) return;
-      if (!originalLTCTexts.has(div)) originalLTCTexts.set(div, text);
-      const match = text.match(/^(\d+\.\d{8})\s*LTC$/);
-      if (!match) return;
+      console.log(`Processing element with text: "${text}"`);
+      if (!text.includes('LTC')) {
+        console.log('No LTC found, skipping');
+        return;
+      }
+
+      if (!originalLTCTexts.has(div)) {
+        originalLTCTexts.set(div, text);
+        console.log(`Stored original LTC text: "${text}"`);
+      }
+
+      const match = text.match(/^(\d+\.\d+)\s*LTC$/);
+      if (!match) {
+        console.log(`No valid LTC amount found in "${text}"`);
+        return;
+      }
+
       const amount = parseFloat(match[1]);
-      if (isNaN(amount) || amount <= 0) return;
+      if (isNaN(amount) || amount <= 0) {
+        console.log(`Invalid LTC amount parsed: ${amount}`);
+        return;
+      }
+
       const multiplied = amount * 1259;
-      if (isFinite(multiplied)) {
-        div.textContent = `${multiplied.toFixed(8)} LTC`;
+      const newText = `${multiplied.toFixed(8)} LTC`;
+      console.log(`Calculated: ${amount} * 1259 = ${multiplied.toFixed(8)}, updating to "${newText}"`);
+
+      if (div.textContent.trim() !== newText) {
+        div.textContent = newText;
+        console.log(`Updated element to: "${newText}"`);
+      } else {
+        console.log('No update needed, text already correct');
       }
     });
   };
@@ -62,25 +94,36 @@
   };
 
   const multiplyWagered = () => {
+    console.log('Running multiplyWagered');
     const wageredSpans = document.querySelectorAll(WAGERED_SELECTOR);
     wageredSpans.forEach(wageredSpan => {
       if (!wageredProcessed.has(wageredSpan)) {
         const text = wageredSpan.textContent.trim();
         const match = text.match(/^\$([\d,.]+)/);
-        if (!match) return;
+        if (!match) {
+          console.log(`No valid amount found in "${text}"`);
+          return;
+        }
+
         const amountStr = match[1].replace(/,/g, '');
         const amount = parseFloat(amountStr);
-        if (isNaN(amount) || amount <= 0) return;
+        if (isNaN(amount) || amount <= 0) {
+          console.log(`Invalid amount parsed: ${amount}`);
+          return;
+        }
+
         const multiplied = amount * 450;
         if (isFinite(multiplied)) {
           wageredSpan.textContent = `$${formatNumber(multiplied)}`;
           wageredProcessed.add(wageredSpan);
+          console.log(`Updated wagered amount to: $${formatNumber(multiplied)}`);
         }
       }
     });
   };
 
   const replaceARS = () => {
+    console.log('Running replaceARS');
     const elements = getElements();
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
       acceptNode: n => shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : n.nodeValue.includes('ARS') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
@@ -88,10 +131,12 @@
     let node;
     while (node = walker.nextNode()) {
       node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$');
+      console.log(`Replaced ARS with ${isUSDElement(node, elements) ? 'USD' : '$'} in "${node.nodeValue}"`);
     }
   };
 
   const replaceNoneAndBronze = () => {
+    console.log('Running replaceNoneAndBronze');
     const elements = getElements();
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
       acceptNode: n => shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : n.nodeValue.includes('None') || n.nodeValue.includes('Bronze') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
@@ -99,6 +144,7 @@
     let node;
     while (node = walker.nextNode()) {
       node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
+      console.log(`Replaced None/Bronze with Platinum II/III in "${node.nodeValue}"`);
     }
   };
 
@@ -114,6 +160,7 @@
   const matches = (el, attrs) => Object.entries(attrs).every(([k, v]) => k === 'd' ? el.getAttribute(k)?.startsWith(v) : el.getAttribute(k) === v);
 
   const replacePaths = () => {
+    console.log('Running replacePaths');
     const { excluded } = getElements();
     document.querySelectorAll('path').forEach(path => {
       if (shouldSkip(path, { excluded })) return;
@@ -125,20 +172,25 @@
             const span = document.createElement('span');
             span.innerHTML = replacement.to.replaceWith;
             parentSvg.replaceWith(span.firstChild);
+            console.log('Replaced SVG with new span');
           }
         } else {
           Object.entries(replacement.to).forEach(([k, v]) => path.setAttribute(k, v));
+          console.log(`Updated path attributes: ${JSON.stringify(replacement.to)}`);
         }
       } else if (matches(path, deleteAttrs)) {
         path.remove();
+        console.log('Removed path matching deleteAttrs');
       }
     });
   };
 
   const replaceBorder = () => {
+    console.log('Running replaceBorder');
     document.querySelectorAll('div.flex.flex-col.justify-center.rounded-lg.w-full.bg-grey-700').forEach(div => {
       if (div.style.border === '2px solid rgb(47, 69, 83)') {
         div.style.border = '2px solid #6fdde7';
+        console.log('Updated border to #6fdde7');
       }
     });
   };
@@ -147,6 +199,7 @@
     if (!i?.dataset.hooked) {
       i.dataset.hooked = '1';
       ['input', 'change'].forEach(e => i.addEventListener(e, () => {
+        console.log(`Input event (${e}) triggered`);
         convertAll();
         multiplyLTC();
       }));
@@ -154,6 +207,7 @@
   };
 
   const setupDecimalLogger = () => {
+    console.log('Setting up decimal logger');
     const logged = new Set();
     const checkDecimals = () => {
       const current = new Set();
@@ -178,6 +232,7 @@
                 } else {
                   el.textContent = convertedAmount;
                 }
+                console.log(`Updated decimal amount to ${convertedAmount} for ${currency}`);
               }
             }
             break;
@@ -192,28 +247,46 @@
   };
 
   const setupPersistentObserver = () => {
+    console.log('Setting up MutationObserver');
     const observer = new MutationObserver(muts => {
+      console.log(`MutationObserver triggered with ${muts.length} mutations`);
       const elements = getElements();
+      let ltcChanged = false;
       muts.forEach(m => {
         if (m.type === 'characterData') {
           if (m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
             m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '$');
+            console.log(`Replaced ARS in characterData: "${m.target.nodeValue}"`);
           }
           if ((m.target.nodeValue.includes('None') || m.target.nodeValue.includes('Bronze')) && !shouldSkip(m.target, elements)) {
             m.target.nodeValue = m.target.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
+            console.log(`Replaced None/Bronze in characterData: "${m.target.nodeValue}"`);
+          }
+          if (m.target.parentElement?.matches(CONV_SELECTOR) && m.target.nodeValue.includes('LTC')) {
+            console.log('LTC characterData change detected');
+            ltcChanged = true;
           }
         }
         m.addedNodes.forEach(n => {
           if (n.nodeType === 1) {
-            if (n.matches?.('input[data-test="input-game-amount"]')) hookInput(n);
+            if (n.matches?.('input[data-test="input-game-amount"]')) {
+              hookInput(n);
+              console.log('Hooked new input element');
+            }
             n.querySelectorAll?.('input[data-test="input-game-amount"]').forEach(hookInput);
             n.querySelectorAll?.(WAGERED_SELECTOR).forEach(wageredSpan => {
-              if (!wageredProcessed.has(wageredSpan)) multiplyWagered();
+              if (!wageredProcessed.has(wageredSpan)) {
+                multiplyWagered();
+                console.log('Processed new wagered span');
+              }
             });
             n.querySelectorAll?.('path').forEach(path => replacePaths());
             n.querySelectorAll?.('div.flex.flex-col.justify-center.rounded-lg.w-full.bg-grey-700').forEach(div => replaceBorder());
             n.querySelectorAll?.(CONV_SELECTOR).forEach(div => {
-              if (div.textContent.includes('LTC')) multiplyLTC();
+              if (div.textContent.includes('LTC')) {
+                console.log('New LTC element found in added nodes');
+                ltcChanged = true;
+              }
             });
             const walker = document.createTreeWalker(n, NodeFilter.SHOW_TEXT, {
               acceptNode: node => (node.nodeValue.includes('None') || node.nodeValue.includes('Bronze')) && !shouldSkip(node, elements) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
@@ -221,6 +294,7 @@
             let node;
             while (node = walker.nextNode()) {
               node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
+              console.log(`Replaced None/Bronze in new node: "${node.nodeValue}"`);
             }
           }
         });
@@ -230,13 +304,18 @@
       replaceBorder();
       replaceARS();
       replaceNoneAndBronze();
-      multiplyLTC();
+      if (ltcChanged) {
+        multiplyLTC();
+        console.log('LTC-related change detected, ran multiplyLTC');
+      }
     });
 
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    console.log('MutationObserver is now observing');
   };
 
   (async () => {
+    console.log('Script initialization');
     await fetchPrices();
     convertAll();
     multiplyWagered();
@@ -249,6 +328,7 @@
     setupDecimalLogger();
     setupPersistentObserver();
     setInterval(() => {
+      console.log('Periodic check');
       convertAll();
       multiplyWagered();
       replaceARS();
