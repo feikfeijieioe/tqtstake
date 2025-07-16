@@ -248,7 +248,7 @@
       eurInput.checked = true;
       const indicator = eurInput.nextElementSibling;
       if (indicator && indicator.classList.contains('indicator')) {
-        indicator.classList.add('checked'); // Ajoute une classe pour simuler le point blanc (si nécessaire)
+        indicator.classList.add('checked');
       }
       console.log('Forced EUR input to checked state');
     }
@@ -259,15 +259,38 @@
       el.addEventListener('change', (e) => {
         const selectedCurrency = document.querySelector('input[type="radio"][data-testid]:checked')?.getAttribute('data-testid');
         if (selectedCurrency === 'currency-eur') {
-          // Simule que ARS est sélectionné dans les données
           const arsInput = document.querySelector('[data-testid="currency-ars"]');
           if (arsInput) {
-            arsInput.setAttribute('data-selected', 'true'); // Marque ARS comme sélectionné
+            arsInput.setAttribute('data-selected', 'true');
             console.log('Intercepted EUR selection, forcing ARS logic');
           }
         }
+        // Sauvegarde de l'état dans localStorage
+        const isEurChecked = document.querySelector('[data-testid="currency-eur"]').checked;
+        localStorage.setItem('customCurrencyState', JSON.stringify({ eurChecked: isEurChecked }));
       });
     });
+  };
+
+  const restoreCurrencyState = () => {
+    console.log('Restoring currency state');
+    const savedState = localStorage.getItem('customCurrencyState');
+    if (savedState) {
+      const state = JSON.parse(savedState);
+      const eurInput = document.querySelector('[data-test="currency-eur-label"] input[type="radio"]');
+      if (eurInput && state.eurChecked) {
+        eurInput.checked = true;
+        const indicator = eurInput.nextElementSibling;
+        if (indicator && indicator.classList.contains('indicator')) {
+          indicator.classList.add('checked');
+        }
+        const arsInput = document.querySelector('[data-testid="currency-ars"]');
+        if (arsInput) {
+          arsInput.setAttribute('data-selected', 'true');
+        }
+        console.log('Restored EUR as checked and ARS logic');
+      }
+    }
   };
 
   const hookInput = i => {
@@ -392,6 +415,8 @@
         multiplyLTC();
         console.log('rate du LTC changé');
       }
+      // Restaurer l'état à chaque changement
+      restoreCurrencyState();
     });
 
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
@@ -426,6 +451,7 @@
     replaceBorder();
     replaceRewardElements();
     replaceCurrencyElements();
+    restoreCurrencyState(); // Restaurer l'état au chargement initial
     setupDecimalLogger();
     setupPersistentObserver();
     setInterval(() => {
