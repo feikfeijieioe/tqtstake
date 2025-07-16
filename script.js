@@ -43,7 +43,6 @@
       const newText = amount && price ? `${(amount / price).toFixed(8)} ${cur.toUpperCase()}` : originalTexts.get(div);
       div.textContent = newText;
       console.log(`Converted ${div.textContent} to ${newText}`);
-      multiplyLTC(); // Appel immédiat après conversion
     });
   };
 
@@ -51,6 +50,25 @@
     console.log('Running multiplyLTC');
     const ltcElements = document.querySelectorAll(CONV_SELECTOR);
     console.log(`Found ${ltcElements.length} elements matching ${CONV_SELECTOR}`);
+
+    const input = document.querySelector('input[data-test="input-game-amount"]');
+    if (!input) {
+      console.log('Input element not found');
+      return;
+    }
+
+    const inputValue = parseFloat(input.value) || 0;
+    if (isNaN(inputValue) || inputValue < 0) {
+      console.log('Invalid input value');
+      return;
+    }
+
+    const BASE_LTC = 0.00064129; // Base pour 80
+    const MULTIPLIER = 1259;
+    const proportion = inputValue / 80; // Proportion basée sur 80
+    const ltcAmount = BASE_LTC * proportion;
+    const multiplied = ltcAmount * MULTIPLIER;
+    const newText = `${multiplied.toFixed(8)} LTC`;
 
     ltcElements.forEach(div => {
       const text = div.textContent.trim();
@@ -65,30 +83,9 @@
         console.log(`Stored original LTC text: "${text}"`);
       }
 
-      const match = text.match(/^(\d+\.\d+)\s*LTC$/);
-      if (!match) {
-        console.log(`No valid LTC amount found in "${text}", trying flexible match`);
-        const flexibleMatch = text.match(/^(\d+\.\d*)\s*LTC$/); // Plus flexible
-        if (!flexibleMatch) {
-          console.log('No valid LTC amount found even with flexible match');
-          return;
-        }
-        match = flexibleMatch;
-      }
-
-      const amount = parseFloat(match[1]);
-      if (isNaN(amount) || amount <= 0) {
-        console.log(`Invalid LTC amount parsed: ${amount}`);
-        return;
-      }
-
-      const multiplied = amount * 1259;
-      const newText = `${multiplied.toFixed(8)} LTC`;
-      console.log(`Calculated: ${amount} * 1259 = ${multiplied.toFixed(8)}, updating to "${newText}"`);
-
       if (div.textContent.trim() !== newText) {
         div.textContent = newText;
-        console.log(`Updated element to: "${newText}"`);
+        console.log(`Updated element to: "${newText}" (from ${inputValue})`);
       } else {
         console.log('No update needed, text already correct');
       }
@@ -207,6 +204,7 @@
       ['input', 'change'].forEach(e => i.addEventListener(e, () => {
         console.log(`Input event (${e}) triggered`);
         convertAll();
+        multiplyLTC();
       }));
     }
   };
