@@ -356,6 +356,6 @@
       replacePaths();
       replaceBorder();
       multiplyLTC();
-    }, 1000);
+    }, 2000); // Augmenté à 2 secondes pour réduire le spam
   })();
 })();
