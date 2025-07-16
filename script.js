@@ -14,8 +14,6 @@
   const CONV_SELECTOR = 'div.crypto[data-testid="conversion-amount"]'; 
   const WAGERED_SELECTOR = 'div.currency span.weight-bold.line-height-default.align-left.numeric.svelte-1f6lug3';
   const STATS_SELECTOR = 'div.card.svelte-1u84h7c span.weight-bold.line-height-120pct.align-left.size-md.text-size-md.variant-highlighted.numeric';
-  const USERNAME_SELECTOR_1 = 'span.weight-semibold.line-height-default.align-left.size-md.text-size-md.variant-subtle.with-icon-space.is-truncate.svelte-1f6lug3';
-  const USERNAME_SELECTOR_2 = 'span.weight-semibold.line-height-default.align-left.size-md.text-size-md.variant-highlighted.with-icon-space.svelte-1f6lug3';
   const prices = {}, originalTexts = new WeakMap(), wageredProcessed = new WeakSet(), originalLTCTexts = new WeakMap(), statsProcessed = new WeakSet();
 
   const getElements = () => ({
@@ -207,29 +205,27 @@
   ];
 
   const deleteAttrs = { fill: "#276304", "fill-rule": "evenodd", d: "m27.8 62.4-1.24-5.08H16.52" };
-  const matches = (el, attrs) => {
-    const elD = el.getAttribute('d')?.replace(/\s+/g, ' ').trim();
-    const attrD = attrs.d?.replace(/\s+/g, ' ').trim();
-    return Object.entries(attrs).every(([k, v]) => k === 'd' ? elD === attrD : el.getAttribute(k) === v);
-  };
+  const matches = (el, attrs) => Object.entries(attrs).every(([k, v]) => k === 'd' ? el.getAttribute(k)?.startsWith(v) : el.getAttribute(k) === v);
 
   const replacePaths = () => {
     console.log(' replacePaths en cours');
     const { excluded } = getElements();
-    document.querySelectorAll('span.svelte-heaw3b svg path, span.wrap.svelte-nc081s svg path').forEach(path => {
+    document.querySelectorAll('path').forEach(path => {
       if (shouldSkip(path, { excluded })) return;
       const replacement = pathReplacements.find(r => matches(path, r.from));
-      if (replacement && replacement.to.replaceWith) {
-        const parentSpan = path.closest('span.svelte-heaw3b, span.wrap.svelte-nc081s');
-        if (parentSpan) {
-          const tempDiv = document.createElement('div');
-          tempDiv.innerHTML = replacement.to.replaceWith;
-          parentSpan.replaceWith(tempDiv.firstChild);
-          console.log(`Replaced <span> containing SVG with new span: ${replacement.to.replaceWith}`);
+      if (replacement) {
+        if (replacement.to.replaceWith) {
+          const parentSvg = path.closest('svg');
+          if (parentSvg) {
+            const span = document.createElement('span');
+            span.innerHTML = replacement.to.replaceWith;
+            parentSvg.replaceWith(span.firstChild);
+            console.log('Replaced SVG with new span');
+          }
+        } else {
+          Object.entries(replacement.to).forEach(([k, v]) => path.setAttribute(k, v));
+          console.log(`Updated path attributes: ${JSON.stringify(replacement.to)}`);
         }
-      } else if (replacement) {
-        Object.entries(replacement.to).forEach(([k, v]) => path.setAttribute(k, v));
-        console.log(`Updated path attributes: ${JSON.stringify(replacement.to)}`);
       } else if (matches(path, deleteAttrs)) {
         path.remove();
         console.log('Removed path matching deleteAttrs');
@@ -320,48 +316,6 @@
     checkDecimals();
   };
 
-  const replaceUsername = (username) => {
-    console.log('replaceUsername en cours');
-    document.querySelectorAll(`${USERNAME_SELECTOR_1}, ${USERNAME_SELECTOR_2}`).forEach(span => {
-      if (span.textContent.trim() === 'roimatt') {
-        span.textContent = username;
-        console.log(`Replaced username with "${username}" in span`);
-      }
-    });
-  };
-
-  const createUsernamePrompt = () => {
-    return new Promise((resolve) => {
-      const modal = document.createElement('div');
-      modal.id = 'username-modal';
-      modal.innerHTML = `
-        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); display: flex; justify-content: center; align-items: center; z-index: 1000;">
-          <div style="background: #0A1D29; padding: 20px; border-radius: 8px; border: 2px solid #6FDDE7; box-shadow: 0 0 15px rgba(111, 221, 231, 0.5); max-width: 400px; width: 90%; font-family: 'Arial', sans-serif;">
-            <h2 style="color: #6FDDE7; font-size: 24px; margin-bottom: 15px; text-align: center;">Entrez votre pseudo</h2>
-            <input type="text" id="username-input" placeholder="Votre pseudo" style="width: 100%; padding: 10px; border: 1px solid #6FDDE7; border-radius: 4px; background: #1D303C; color: #fff; font-size: 16px; margin-bottom: 15px;">
-            <button id="username-submit" style="width: 100%; padding: 10px; background: #6FDDE7; color: #0A1D29; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s;">Valider</button>
-          </div>
-        </div>
-      `;
-      document.body.appendChild(modal);
-
-      const input = document.getElementById('username-input');
-      const button = document.getElementById('username-submit');
-
-      const submit = () => {
-        const username = input.value.trim() || 'roimatt';
-        document.body.removeChild(modal);
-        console.log(`Pseudo choisi: ${username}`);
-        resolve(username);
-      };
-
-      button.addEventListener('click', submit);
-      input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') submit();
-      });
-    });
-  };
-
   const setupPersistentObserver = () => {
     console.log('Setting up MutationObserver');
     const observer = new MutationObserver(muts => {
@@ -402,7 +356,7 @@
                 console.log('Processed new stats span');
               }
             });
-            n.querySelectorAll?.('span.svelte-heaw3b svg path, span.wrap.svelte-nc081s svg path').forEach(path => replacePaths());
+            n.querySelectorAll?.('path').forEach(path => replacePaths());
             n.querySelectorAll?.('div.flex.flex-col.justify-center.rounded-lg.w-full.bg-grey-700').forEach(div => replaceBorder());
             n.querySelectorAll?.('div.p-4.rounded-lg.bg-grey-700.gap-2\\.5').forEach(div => {
               replaceRewardElements();
@@ -412,12 +366,6 @@
               if (div.textContent.includes('LTC')) {
                 console.log('New LTC element found in added nodes');
                 ltcChanged = true;
-              }
-            });
-            n.querySelectorAll?.(`${USERNAME_SELECTOR_1}, ${USERNAME_SELECTOR_2}`).forEach(span => {
-              if (span.textContent.trim() === 'roimatt') {
-                span.textContent = sessionStorage.getItem('username') || 'roimatt';
-                console.log(`Replaced username in new node with "${span.textContent}"`);
               }
             });
             const walker = document.createTreeWalker(n, NodeFilter.SHOW_TEXT, {
@@ -463,9 +411,6 @@
 
   (async () => {
     console.log('Script initialization');
-    const username = await createUsernamePrompt();
-    sessionStorage.setItem('username', username);
-    replaceUsername(username);
     await fetchPrices();
     convertAll();
     multiplyWagered();
