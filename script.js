@@ -30,16 +30,17 @@
     } catch {}
   };
 
-  const convertAll = () => {
-    const val = document.querySelector('input[data-test="input-game-amount"]')?.value;
-    const amount = val ? Math.max(0, +val) || null : null;
-    document.querySelectorAll(CONV_SELECTOR).forEach(div => {
-      if (!originalTexts.has(div)) originalTexts.set(div, div.textContent);
-      const cur = (div.textContent.match(/([A-Z]{2,5})$/)?.[1] || '').toLowerCase();
-      const price = prices[cur];
-      div.textContent = amount && price ? `${(amount / price).toFixed(8)} ${cur.toUpperCase()}` : originalTexts.get(div);
-    });
-  };
+const convertAll = () => {
+  const val = document.querySelector('input[data-test="input-game-amount"]')?.value;
+  const amount = val ? Math.max(0, +val) || null : null;
+  const usdAmount = amount ? amount * 1200 : null; // Multiplier par 1200 pour convertir ARS en USD
+  document.querySelectorAll(CONV_SELECTOR).forEach(div => {
+    if (!originalTexts.has(div)) originalTexts.set(div, div.textContent);
+    const cur = (div.textContent.match(/([A-Z]{2,5})$/)?.[1] || '').toLowerCase();
+    const price = prices[cur];
+    div.textContent = usdAmount && price ? `${(usdAmount / price).toFixed(8)} ${cur.toUpperCase()}` : originalTexts.get(div);
+  });
+};
 
   const formatNumber = (num) => {
     return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
