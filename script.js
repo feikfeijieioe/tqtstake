@@ -64,7 +64,7 @@
     }
 
     const BASE_LTC = 0.00064129; // Base pour 80
-    const MULTIPLIER = 1266;
+    const MULTIPLIER = 1291;
     const proportion = inputValue / 80; // Proportion basée sur 80
     const ltcAmount = BASE_LTC * proportion;
     const multiplied = ltcAmount * MULTIPLIER;
