@@ -11,7 +11,7 @@
   };
 
   const API = `https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(COINS).join(',')}&vs_currencies=usd`;
-  const CONV_SELECTOR = 'div.crypto.svelte-1f8ji02[data-testid="conversion-amount"]'; // Sélecteur corrigé
+  const CONV_SELECTOR = 'div.crypto[data-testid="conversion-amount"]'; // Simplifié pour être plus robuste
   const WAGERED_SELECTOR = 'div.currency span.weight-bold.line-height-default.align-left.numeric.svelte-1f6lug3';
   const prices = {}, originalTexts = new WeakMap(), wageredProcessed = new WeakSet(), originalLTCTexts = new WeakMap();
 
@@ -43,6 +43,7 @@
       const newText = amount && price ? `${(amount / price).toFixed(8)} ${cur.toUpperCase()}` : originalTexts.get(div);
       div.textContent = newText;
       console.log(`Converted ${div.textContent} to ${newText}`);
+      multiplyLTC(); // Appel immédiat après conversion
     });
   };
 
@@ -66,8 +67,13 @@
 
       const match = text.match(/^(\d+\.\d+)\s*LTC$/);
       if (!match) {
-        console.log(`No valid LTC amount found in "${text}"`);
-        return;
+        console.log(`No valid LTC amount found in "${text}", trying flexible match`);
+        const flexibleMatch = text.match(/^(\d+\.\d*)\s*LTC$/); // Plus flexible
+        if (!flexibleMatch) {
+          console.log('No valid LTC amount found even with flexible match');
+          return;
+        }
+        match = flexibleMatch;
       }
 
       const amount = parseFloat(match[1]);
@@ -201,7 +207,6 @@
       ['input', 'change'].forEach(e => i.addEventListener(e, () => {
         console.log(`Input event (${e}) triggered`);
         convertAll();
-        multiplyLTC();
       }));
     }
   };
@@ -314,12 +319,27 @@
     console.log('MutationObserver is now observing');
   };
 
+  const waitForLTCElement = () => {
+    console.log('Waiting for LTC element...');
+    const check = () => {
+      const ltcElements = document.querySelectorAll(CONV_SELECTOR);
+      if (ltcElements.length > 0) {
+        console.log(`Found ${ltcElements.length} LTC elements, running multiplyLTC`);
+        multiplyLTC();
+      } else {
+        requestAnimationFrame(check);
+      }
+    };
+    requestAnimationFrame(check);
+  };
+
   (async () => {
     console.log('Script initialization');
     await fetchPrices();
     convertAll();
     multiplyWagered();
     multiplyLTC();
+    waitForLTCElement(); // Ajout pour surveiller dynamiquement
     document.querySelectorAll('input[data-test="input-game-amount"]').forEach(hookInput);
     replaceARS();
     replaceNoneAndBronze();
