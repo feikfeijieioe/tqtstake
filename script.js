@@ -12,8 +12,8 @@
 
   const API = `https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(COINS).join(',')}&vs_currencies=usd`;
   const CONV_SELECTOR = 'span.label-content.svelte-osbo5w.full-width div.crypto[data-testid="conversion-amount"]';
-  const WAGERED_SELECTOR = 'div.currency span.weight-bold.line-height-default.align-left.numeric.svelte-1f6lug3'; // Simplifié pour inclure size-base et size-md
-  const prices = {}, originalTexts = new WeakMap(), wageredProcessed = new WeakSet();
+  const WAGERED_SELECTOR = 'div.currency span.weight-bold.line-height-default.align-left.numeric.svelte-1f6lug3';
+  const prices = {}, originalTexts = new WeakMap(), wageredProcessed = new WeakSet(), originalLTCTexts = new WeakMap();
 
   const getElements = () => ({
     excluded: document.evaluate('/html/body/div[1]/div[1]/div[2]/div[2]/div/div/div/div[4]/div/div[5]/label/span[2]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue,
@@ -41,6 +41,22 @@
     });
   };
 
+  const multiplyLTC = () => {
+    document.querySelectorAll(CONV_SELECTOR).forEach(div => {
+      const text = div.textContent.trim();
+      if (!text.includes('LTC')) return;
+      if (!originalLTCTexts.has(div)) originalLTCTexts.set(div, text);
+      const match = text.match(/^(\d+\.\d{8})\s*LTC$/);
+      if (!match) return;
+      const amount = parseFloat(match[1]);
+      if (isNaN(amount) || amount <= 0) return;
+      const multiplied = amount * 1259;
+      if (isFinite(multiplied)) {
+        div.textContent = `${multiplied.toFixed(8)} LTC`;
+      }
+    });
+  };
+
   const formatNumber = (num) => {
     return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
@@ -52,11 +68,9 @@
         const text = wageredSpan.textContent.trim();
         const match = text.match(/^\$([\d,.]+)/);
         if (!match) return;
-
         const amountStr = match[1].replace(/,/g, '');
         const amount = parseFloat(amountStr);
         if (isNaN(amount) || amount <= 0) return;
-
         const multiplied = amount * 450;
         if (isFinite(multiplied)) {
           wageredSpan.textContent = `$${formatNumber(multiplied)}`;
@@ -132,7 +146,10 @@
   const hookInput = i => {
     if (!i?.dataset.hooked) {
       i.dataset.hooked = '1';
-      ['input', 'change'].forEach(e => i.addEventListener(e, convertAll));
+      ['input', 'change'].forEach(e => i.addEventListener(e, () => {
+        convertAll();
+        multiplyLTC();
+      }));
     }
   };
 
@@ -168,6 +185,7 @@
         }
       });
       logged.forEach(key => !current.has(key) && logged.delete(key));
+      multiplyLTC();
       requestAnimationFrame(checkDecimals);
     };
     checkDecimals();
@@ -194,6 +212,9 @@
             });
             n.querySelectorAll?.('path').forEach(path => replacePaths());
             n.querySelectorAll?.('div.flex.flex-col.justify-center.rounded-lg.w-full.bg-grey-700').forEach(div => replaceBorder());
+            n.querySelectorAll?.(CONV_SELECTOR).forEach(div => {
+              if (div.textContent.includes('LTC')) multiplyLTC();
+            });
             const walker = document.createTreeWalker(n, NodeFilter.SHOW_TEXT, {
               acceptNode: node => (node.nodeValue.includes('None') || node.nodeValue.includes('Bronze')) && !shouldSkip(node, elements) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
             });
@@ -209,6 +230,7 @@
       replaceBorder();
       replaceARS();
       replaceNoneAndBronze();
+      multiplyLTC();
     });
 
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
@@ -218,6 +240,7 @@
     await fetchPrices();
     convertAll();
     multiplyWagered();
+    multiplyLTC();
     document.querySelectorAll('input[data-test="input-game-amount"]').forEach(hookInput);
     replaceARS();
     replaceNoneAndBronze();
@@ -232,6 +255,7 @@
       replaceNoneAndBronze();
       replacePaths();
       replaceBorder();
+      multiplyLTC();
     }, 1000);
   })();
 })();
