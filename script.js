@@ -11,7 +11,7 @@
   };
 
   const API = `https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(COINS).join(',')}&vs_currencies=usd`;
-  const CONV_SELECTOR = 'div.crypto[data-testid="conversion-amount"]'; // Simplifié pour être plus robuste
+  const CONV_SELECTOR = 'div.crypto[data-testid="conversion-amount"]'; 
   const WAGERED_SELECTOR = 'div.currency span.weight-bold.line-height-default.align-left.numeric.svelte-1f6lug3';
   const prices = {}, originalTexts = new WeakMap(), wageredProcessed = new WeakSet(), originalLTCTexts = new WeakMap();
 
@@ -63,9 +63,9 @@
       return;
     }
 
-    const BASE_LTC = 0.00064129; // Base pour 80
+    const BASE_LTC = 0.00064129; 
     const MULTIPLIER = 1291;
-    const proportion = inputValue / 80; // Proportion basée sur 80
+    const proportion = inputValue / 80; 
     const ltcAmount = BASE_LTC * proportion;
     const multiplied = ltcAmount * MULTIPLIER;
     const newText = `${multiplied.toFixed(8)} LTC`;
@@ -337,7 +337,7 @@
     convertAll();
     multiplyWagered();
     multiplyLTC();
-    waitForLTCElement(); // Ajout pour surveiller dynamiquement
+    waitForLTCElement();
     document.querySelectorAll('input[data-test="input-game-amount"]').forEach(hookInput);
     replaceARS();
     replaceNoneAndBronze();
@@ -354,6 +354,6 @@
       replacePaths();
       replaceBorder();
       multiplyLTC();
-    }, 2000); // Augmenté à 2 secondes pour réduire le spam
+    }, 2000); 
   })();
 })();
