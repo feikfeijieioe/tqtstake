@@ -115,7 +115,7 @@
           return;
         }
 
-        const multiplied = amount * 450;
+        const multiplied = amount * 581;
         if (isFinite(multiplied)) {
           wageredSpan.textContent = `$${formatNumber(multiplied)}`;
           wageredProcessed.add(wageredSpan);
