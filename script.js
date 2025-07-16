@@ -152,7 +152,7 @@
 
         let multiplier;
         if (label === 'Total Bets') {
-          multiplier = 10;
+          multiplier = 4.97;
         } else if (label === 'Number of Wins' || label === 'Number of Losses') {
           multiplier = 5;
         } else {
