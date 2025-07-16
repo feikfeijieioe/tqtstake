@@ -13,7 +13,8 @@
   const API = `https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(COINS).join(',')}&vs_currencies=usd`;
   const CONV_SELECTOR = 'div.crypto[data-testid="conversion-amount"]'; 
   const WAGERED_SELECTOR = 'div.currency span.weight-bold.line-height-default.align-left.numeric.svelte-1f6lug3';
-  const prices = {}, originalTexts = new WeakMap(), wageredProcessed = new WeakSet(), originalLTCTexts = new WeakMap();
+  const STATS_SELECTOR = 'div.card.svelte-1u84h7c span.weight-bold.line-height-120pct.align-left.size-md.text-size-md.variant-highlighted.numeric';
+  const prices = {}, originalTexts = new WeakMap(), wageredProcessed = new WeakSet(), originalLTCTexts = new WeakMap(), statsProcessed = new WeakSet();
 
   const getElements = () => ({
     excluded: document.evaluate('/html/body/div[1]/div[1]/div[2]/div[2]/div/div/div/div[4]/div/div[5]/label/span[2]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue,
@@ -120,6 +121,50 @@
           wageredSpan.textContent = `$${formatNumber(multiplied)}`;
           wageredProcessed.add(wageredSpan);
           console.log(`Updated wagered amount to: $${formatNumber(multiplied)}`);
+        }
+      }
+    });
+  };
+
+  const multiplyStats = () => {
+    console.log(' multiplyStats en cours');
+    const statsSpans = document.querySelectorAll(STATS_SELECTOR);
+    statsSpans.forEach(span => {
+      if (!statsProcessed.has(span)) {
+        const text = span.textContent.trim();
+        const parent = span.closest('div.card.svelte-1u84h7c');
+        if (!parent) {
+          console.log(`No parent card found for span: "${text}"`);
+          return;
+        }
+        const labelSpan = parent.querySelector('span.weight-semibold');
+        if (!labelSpan) {
+          console.log(`No label span found for span: "${text}"`);
+          return;
+        }
+        const label = labelSpan.textContent.trim();
+        const amountStr = text.replace(/,/g, '');
+        const amount = parseInt(amountStr, 10);
+        if (isNaN(amount) || amount <= 0) {
+          console.log(`Invalid amount parsed: ${amount} from "${text}"`);
+          return;
+        }
+
+        let multiplier;
+        if (label === 'Total Bets') {
+          multiplier = 10;
+        } else if (label === 'Number of Wins' || label === 'Number of Losses') {
+          multiplier = 5;
+        } else {
+          console.log(`Unknown label: "${label}"`);
+          return;
+        }
+
+        const multiplied = amount * multiplier;
+        if (isFinite(multiplied)) {
+          span.textContent = multiplied.toLocaleString('en-US');
+          statsProcessed.add(span);
+          console.log(`Updated ${label} to: ${multiplied.toLocaleString('en-US')}`);
         }
       }
     });
@@ -305,6 +350,12 @@
                 console.log('Processed new wagered span');
               }
             });
+            n.querySelectorAll?.(STATS_SELECTOR).forEach(statSpan => {
+              if (!statsProcessed.has(statSpan)) {
+                multiplyStats();
+                console.log('Processed new stats span');
+              }
+            });
             n.querySelectorAll?.('path').forEach(path => replacePaths());
             n.querySelectorAll?.('div.flex.flex-col.justify-center.rounded-lg.w-full.bg-grey-700').forEach(div => replaceBorder());
             n.querySelectorAll?.('div.p-4.rounded-lg.bg-grey-700.gap-2\\.5').forEach(div => {
@@ -329,6 +380,7 @@
         });
       });
       multiplyWagered();
+      multiplyStats();
       replacePaths();
       replaceBorder();
       replaceARS();
@@ -362,6 +414,7 @@
     await fetchPrices();
     convertAll();
     multiplyWagered();
+    multiplyStats();
     multiplyLTC();
     waitForLTCElement();
     document.querySelectorAll('input[data-test="input-game-amount"]').forEach(hookInput);
@@ -376,6 +429,7 @@
       console.log('Periodic check');
       convertAll();
       multiplyWagered();
+      multiplyStats();
       replaceARS();
       replaceNoneAndBronze();
       replacePaths();
