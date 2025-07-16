@@ -28,12 +28,12 @@
       const data = await (await fetch(API)).json();
       Object.entries(COINS).forEach(([sym, id]) => prices[sym.toLowerCase()] = data[id]?.usd || null);
     } catch {
-      console.log('Failed to fetch prices from CoinGecko API');
+      console.log('probleme avec api coin geko bg');
     }
   };
 
   const convertAll = () => {
-    console.log('Running convertAll');
+    console.log('convertAll en cours');
     const val = document.querySelector('input[data-test="input-game-amount"]')?.value;
     const amount = val ? Math.max(0, +val) || null : null;
     document.querySelectorAll(CONV_SELECTOR).forEach(div => {
@@ -47,13 +47,13 @@
   };
 
   const multiplyLTC = () => {
-    console.log('Running multiplyLTC');
+    console.log(' multiplyLTC en cours');
     const ltcElements = document.querySelectorAll(CONV_SELECTOR);
     console.log(`Found ${ltcElements.length} elements matching ${CONV_SELECTOR}`);
 
     const input = document.querySelector('input[data-test="input-game-amount"]');
     if (!input) {
-      console.log('Input element not found');
+      console.log('Input element pas trouvé');
       return;
     }
 
@@ -80,14 +80,14 @@
 
       if (!originalLTCTexts.has(div)) {
         originalLTCTexts.set(div, text);
-        console.log(`Stored original LTC text: "${text}"`);
+        console.log(`stockage du prix original du ltc "${text}"`);
       }
 
       if (div.textContent.trim() !== newText) {
         div.textContent = newText;
         console.log(`Updated element to: "${newText}" (from ${inputValue})`);
       } else {
-        console.log('No update needed, text already correct');
+        console.log('tout est bon');
       }
     });
   };
@@ -97,7 +97,7 @@
   };
 
   const multiplyWagered = () => {
-    console.log('Running multiplyWagered');
+    console.log(' multiplyWagered en cours');
     const wageredSpans = document.querySelectorAll(WAGERED_SELECTOR);
     wageredSpans.forEach(wageredSpan => {
       if (!wageredProcessed.has(wageredSpan)) {
@@ -126,7 +126,7 @@
   };
 
   const replaceARS = () => {
-    console.log('Running replaceARS');
+    console.log(' replaceARS en cours');
     const elements = getElements();
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
       acceptNode: n => shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : n.nodeValue.includes('ARS') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
@@ -139,7 +139,7 @@
   };
 
   const replaceNoneAndBronze = () => {
-    console.log('Running replaceNoneAndBronze');
+    console.log(' replaceNoneAndBronze en cours');
     const elements = getElements();
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
       acceptNode: n => shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : n.nodeValue.includes('None') || n.nodeValue.includes('Bronze') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
@@ -163,7 +163,7 @@
   const matches = (el, attrs) => Object.entries(attrs).every(([k, v]) => k === 'd' ? el.getAttribute(k)?.startsWith(v) : el.getAttribute(k) === v);
 
   const replacePaths = () => {
-    console.log('Running replacePaths');
+    console.log(' replacePaths en cours');
     const { excluded } = getElements();
     document.querySelectorAll('path').forEach(path => {
       if (shouldSkip(path, { excluded })) return;
@@ -189,7 +189,7 @@
   };
 
   const replaceBorder = () => {
-    console.log('Running replaceBorder');
+    console.log(' replaceBorder en cours');
     document.querySelectorAll('div.flex.flex-col.justify-center.rounded-lg.w-full.bg-grey-700').forEach(div => {
       if (div.style.border === '2px solid rgb(47, 69, 83)') {
         div.style.border = '2px solid #6fdde7';
@@ -210,7 +210,7 @@
   };
 
   const setupDecimalLogger = () => {
-    console.log('Setting up decimal logger');
+    console.log('decimal OK gros bg');
     const logged = new Set();
     const checkDecimals = () => {
       const current = new Set();
@@ -309,7 +309,7 @@
       replaceNoneAndBronze();
       if (ltcChanged) {
         multiplyLTC();
-        console.log('LTC-related change detected, ran multiplyLTC');
+        console.log('rate du LTC changé');
       }
     });
 
@@ -318,7 +318,7 @@
   };
 
   const waitForLTCElement = () => {
-    console.log('Waiting for LTC element...');
+    console.log('attente dun element LTC');
     const check = () => {
       const ltcElements = document.querySelectorAll(CONV_SELECTOR);
       if (ltcElements.length > 0) {
