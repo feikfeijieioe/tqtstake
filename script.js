@@ -25,11 +25,12 @@
 
   const fetchPrices = async () => {
     try {
-      const data = await (await fetch(API)).json();
+      const response = await fetch(API);
+      const data = await response.json();
       Object.entries(COINS).forEach(([sym, id]) => {
         prices[sym.toLowerCase()] = data[id]?.usd || null;
       });
-      console.log('Prix récupérés de l\'API:', prices); // Débogage
+      console.log('Prix récupérés de l\'API:', JSON.stringify(prices, null, 2)); // Débogage détaillé
     } catch (e) {
       console.error('Erreur lors de la récupération des prix:', e);
     }
@@ -37,19 +38,27 @@
 
   const convertAll = () => {
     const input = document.querySelector('input[data-test="input-game-amount"]');
-    const val = input?.value;
+    if (!input) {
+      console.log('Input non trouvé'); // Débogage
+      return;
+    }
+    const val = input.value;
     const amount = val ? Math.max(0, +val) || null : null;
     console.log('Valeur saisie (val):', val, 'Amount converti:', amount); // Débogage
-    const usdAmount = amount ? amount * 1259 : null; // Multiplier par 1259 directement
+    const usdAmount = amount ? amount * 1259 : null; // Multiplier par 1259
     console.log('Montant en USD après multiplicateur:', usdAmount); // Débogage
-    document.querySelectorAll(CONV_SELECTOR).forEach(div => {
+    const conversionElements = document.querySelectorAll(CONV_SELECTOR);
+    if (conversionElements.length === 0) {
+      console.log('Aucun élément trouvé avec CONV_SELECTOR:', CONV_SELECTOR); // Débogage
+    }
+    conversionElements.forEach(div => {
       if (!originalTexts.has(div)) originalTexts.set(div, div.textContent);
       const cur = (div.textContent.match(/([A-Z]{2,5})$/)?.[1] || '').toLowerCase();
       const price = prices[cur];
-      console.log('Devise actuelle (cur):', cur, 'Prix de la devise:', price); // Débogage
+      console.log('Devise cible (cur):', cur, 'Prix de la devise:', price); // Débogage
       if (usdAmount && price && cur === 'ltc') {
         const convertedAmount = usdAmount / price;
-        console.log('Conversion calculée (usdAmount / price):', convertedAmount); // Débogage
+        console.log('Conversion calculée (usdAmount / price):', convertedAmount, 'USD Amount:', usdAmount, 'Price:', price); // Débogage
         div.textContent = `${convertedAmount.toFixed(8)} ${cur.toUpperCase()}`;
       } else {
         console.log('Aucune conversion appliquée, texte original:', originalTexts.get(div)); // Débogage
@@ -132,7 +141,7 @@
     const { excluded } = getElements();
     document.querySelectorAll('path').forEach(path => {
       if (shouldSkip(path, { excluded })) {
-        console.log('Chemin ignoré (exclu):', path); // Débogage
+        console.log('Chemin ignoré (exclu):', path.outerHTML); // Débogage
         return;
       }
       const replacement = pathReplacements.find(r => matches(path, r.from));
@@ -263,7 +272,7 @@
 
   (async () => {
     await fetchPrices();
-    console.log('Prix après fetch:', prices); // Débogage
+    console.log('Prix après fetch:', JSON.stringify(prices, null, 2)); // Débogage
     convertAll();
     multiplyWagered();
     document.querySelectorAll('input[data-test="input-game-amount"]').forEach(hookInput);
