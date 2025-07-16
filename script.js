@@ -30,19 +30,30 @@
     } catch {}
   };
 
-  const convertAll = () => {
-    const val = document.querySelector('input[data-test="input-game-amount"]')?.value;
-    const amount = val ? Math.max(0, +val) || null : null;
-    const ARS_TO_USD = 1 / 1200; // Conversion ARS vers USD (1 USD = 1200 ARS)
-    const amountInUSD = amount ? amount * ARS_TO_USD : null;
-
-    document.querySelectorAll(CONV_SELECTOR).forEach(div => {
-      if (!originalTexts.has(div)) originalTexts.set(div, div.textContent);
-      const cur = (div.textContent.match(/([A-Z]{2,5})$/)?.[1] || '').toLowerCase();
+const convertAll = () => {
+  const val = document.querySelector('input[data-test="input-game-amount"]')?.value;
+  const amount = val ? Math.max(0, +val) || null : null;
+  document.querySelectorAll(CONV_SELECTOR).forEach(div => {
+    if (!originalTexts.has(div)) originalTexts.set(div, div.textContent);
+    const curMatch = div.textContent.match(/([A-Z]{2,5})$/);
+    const cur = curMatch ? curMatch[1].toLowerCase() : '';
+    if (cur === 'ltc') {
+      // Pour LTC, multiplier le montant par 1259
+      const currentAmountMatch = div.textContent.match(/(\d+\.\d+)/);
+      const currentAmount = currentAmountMatch ? parseFloat(currentAmountMatch[0]) : null;
+      if (currentAmount !== null && amount) {
+        const multipliedAmount = (currentAmount * 1259).toFixed(8);
+        div.textContent = `${multipliedAmount} LTC`;
+      } else {
+        div.textContent = originalTexts.get(div);
+      }
+    } else {
+      // Pour les autres cryptos, garder la conversion existante
       const price = prices[cur];
-      div.textContent = amountInUSD && price ? `${(amountInUSD / price).toFixed(8)} ${cur.toUpperCase()}` : originalTexts.get(div);
-    });
-  };
+      div.textContent = amount && price ? `${(amount / price).toFixed(8)} ${cur.toUpperCase()}` : originalTexts.get(div);
+    }
+  });
+};
 
   const formatNumber = (num) => {
     return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
