@@ -159,8 +159,8 @@
     });
     let node;
     while (node = walker.nextNode()) {
-      node.nodeValue = node.nodeValue.replace(/\broimatt\b/g, 'AbxMatGambling');
-      console.log(`Replaced roimatt with AbxMatGambling in "${node.nodeValue}"`);
+      node.nodeValue = node.nodeValue.replace(/\broimatt\b/g, 'AbxMatEZ');
+      console.log(`Replaced roimatt with AbxMatEZ in "${node.nodeValue}"`);
     }
   };
 
@@ -301,7 +301,7 @@
             console.log(`Replaced None/Bronze in characterData: "${m.target.nodeValue}"`);
           }
           if (m.target.nodeValue.includes('roimatt') && !shouldSkip(m.target, elements)) {
-            m.target.nodeValue = m.target.nodeValue.replace(/\broimatt\b/g, 'AbxMatGambling');
+            m.target.nodeValue = m.target.nodeValue.replace(/\broimatt\b/g, 'AbxMatEZ');
             console.log(`Replaced roimatt in characterData: "${m.target.nodeValue}"`);
           }
           if (m.target.parentElement?.matches(CONV_SELECTOR) && m.target.nodeValue.includes('LTC')) {
@@ -339,7 +339,7 @@
             });
             let node;
             while (node = walker.nextNode()) {
-              node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III').replace(/\broimatt\b/g, 'AbxMatGambling');
+              node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III').replace(/\broimatt\b/g, 'AbxMatEZ');
               console.log(`Replaced None/Bronze/roimatt in new node: "${node.nodeValue}"`);
             }
           }
