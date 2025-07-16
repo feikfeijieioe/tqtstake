@@ -60,7 +60,7 @@
     const multiplied = amount * 450;
     if (isFinite(multiplied)) {
       wageredSpan.textContent = `$${formatNumber(multiplied)}`;
-      wageredProcessed.add(wageredSpan); // Marque comme traité avec WeakSet
+      wageredProcessed.add(wageredSpan);
     }
   };
 
@@ -87,10 +87,35 @@
   };
 
   const setupTextObserver = () => {
-    const observer = new MutationObserver(() => {
-      // Ne fait rien pour "Wagered" après la première transformation
+    const observer = new MutationObserver(muts => {
+      const elements = getElements();
+      muts.forEach(m => {
+        if (m.type === 'characterData') {
+          if (m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
+            m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '$');
+          }
+          if ((m.target.nodeValue.includes('None') || m.target.nodeValue.includes('Bronze')) && !shouldSkip(m.target, elements)) {
+            m.target.nodeValue = m.target.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
+          }
+        }
+      });
     });
 
+    const observeNode = node => {
+      if (node.nodeType === Node.TEXT_NODE && (node.nodeValue.includes('ARS') || node.nodeValue.includes('None') || node.nodeValue.includes('Bronze'))) {
+        const elements = getElements();
+        if (!shouldSkip(node, elements)) {
+          observer.observe(node, { characterData: true });
+          node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$')
+                                       .replace(/\bNone\b/g, 'Platinum II')
+                                       .replace(/\bBronze\b/g, 'Platinum III');
+        }
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        [...node.childNodes].forEach(observeNode);
+      }
+    };
+
+    observeNode(document.body);
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
   };
 
@@ -182,7 +207,7 @@
   (async () => {
     await fetchPrices();
     convertAll();
-    multiplyWageredOnce(); // Exécute la multiplication une seule fois
+    multiplyWageredOnce();
     document.querySelectorAll('input[data-test="input-game-amount"]').forEach(hookInput);
     replaceARS();
     replaceNoneAndBronze();
@@ -191,6 +216,21 @@
     setupTextObserver();
     setupDecimalLogger();
     setInterval(fetchPrices, 60000);
-    setInterval(() => { convertAll(); replaceARS(); replaceNoneAndBronze(); replaceBorder(); }, 1000); // Pas de multiplyWagered ici
+    setInterval(() => { convertAll(); replaceARS(); replaceNoneAndBronze(); replaceBorder(); }, 1000);
+    new MutationObserver(muts => {
+      muts.forEach(m => {
+        m.addedNodes.forEach(n => {
+          if (n.nodeType === 1) {
+            if (n.matches?.('input[data-test="input-game-amount"]')) hookInput(n);
+            n.querySelectorAll?.('input[data-test="input-game-amount"]').forEach(hookInput);
+          }
+        });
+      });
+      replaceARS();
+      replaceNoneAndBronze();
+      replacePaths();
+      replaceBorder();
+      multiplyWageredOnce();
+    }).observe(document.body, { childList: true, subtree: true });
   })();
 })();
