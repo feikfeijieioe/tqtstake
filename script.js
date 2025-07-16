@@ -45,7 +45,7 @@
     return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   };
 
-  const multiplyWageredOnce = () => {
+  const multiplyWagered = () => {
     const wageredSpan = document.querySelector(WAGERED_SELECTOR);
     if (!wageredSpan || wageredProcessed.has(wageredSpan)) return;
 
@@ -84,39 +84,6 @@
     while (node = walker.nextNode()) {
       node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
     }
-  };
-
-  const setupTextObserver = () => {
-    const observer = new MutationObserver(muts => {
-      const elements = getElements();
-      muts.forEach(m => {
-        if (m.type === 'characterData') {
-          if (m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
-            m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '$');
-          }
-          if ((m.target.nodeValue.includes('None') || m.target.nodeValue.includes('Bronze')) && !shouldSkip(m.target, elements)) {
-            m.target.nodeValue = m.target.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
-          }
-        }
-      });
-    });
-
-    const observeNode = node => {
-      if (node.nodeType === Node.TEXT_NODE && (node.nodeValue.includes('ARS') || node.nodeValue.includes('None') || node.nodeValue.includes('Bronze'))) {
-        const elements = getElements();
-        if (!shouldSkip(node, elements)) {
-          observer.observe(node, { characterData: true });
-          node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$')
-                                       .replace(/\bNone\b/g, 'Platinum II')
-                                       .replace(/\bBronze\b/g, 'Platinum III');
-        }
-      } else if (node.nodeType === Node.ELEMENT_NODE) {
-        [...node.childNodes].forEach(observeNode);
-      }
-    };
-
-    observeNode(document.body);
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
   };
 
   const pathReplacements = [
@@ -204,33 +171,68 @@
     checkDecimals();
   };
 
+  const setupPersistentObserver = () => {
+    const observer = new MutationObserver(muts => {
+      const elements = getElements();
+      muts.forEach(m => {
+        if (m.type === 'characterData') {
+          if (m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
+            m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '$');
+          }
+          if ((m.target.nodeValue.includes('None') || m.target.nodeValue.includes('Bronze')) && !shouldSkip(m.target, elements)) {
+            m.target.nodeValue = m.target.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
+          }
+        }
+        m.addedNodes.forEach(n => {
+          if (n.nodeType === 1) {
+            if (n.matches?.('input[data-test="input-game-amount"]')) hookInput(n);
+            n.querySelectorAll?.('input[data-test="input-game-amount"]').forEach(hookInput);
+            n.querySelectorAll?.(WAGERED_SELECTOR).forEach(wageredSpan => {
+              if (!wageredProcessed.has(wageredSpan)) multiplyWagered();
+            });
+            n.querySelectorAll?.('path').forEach(path => replacePaths());
+            n.querySelectorAll?.('div.flex.flex-col.justify-center.rounded-lg.w-full.bg-grey-700').forEach(div => replaceBorder());
+            // Rechercher les noeuds texte pour Platinum II/III
+            const walker = document.createTreeWalker(n, NodeFilter.SHOW_TEXT, {
+              acceptNode: node => (node.nodeValue.includes('None') || node.nodeValue.includes('Bronze')) && !shouldSkip(node, elements) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+            });
+            let node;
+            while (node = walker.nextNode()) {
+              node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
+            }
+          }
+        });
+      });
+      // Réappliquer les modifications globales si nécessaire
+      multiplyWagered();
+      replacePaths();
+      replaceBorder();
+      replaceARS();
+      replaceNoneAndBronze();
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+  };
+
   (async () => {
     await fetchPrices();
     convertAll();
-    multiplyWageredOnce();
+    multiplyWagered();
     document.querySelectorAll('input[data-test="input-game-amount"]').forEach(hookInput);
     replaceARS();
     replaceNoneAndBronze();
     replacePaths();
     replaceBorder();
-    setupTextObserver();
     setupDecimalLogger();
+    setupPersistentObserver();
     setInterval(fetchPrices, 60000);
-    setInterval(() => { convertAll(); replaceARS(); replaceNoneAndBronze(); replaceBorder(); }, 1000);
-    new MutationObserver(muts => {
-      muts.forEach(m => {
-        m.addedNodes.forEach(n => {
-          if (n.nodeType === 1) {
-            if (n.matches?.('input[data-test="input-game-amount"]')) hookInput(n);
-            n.querySelectorAll?.('input[data-test="input-game-amount"]').forEach(hookInput);
-          }
-        });
-      });
+    setInterval(() => {
+      convertAll();
       replaceARS();
       replaceNoneAndBronze();
       replacePaths();
       replaceBorder();
-      multiplyWageredOnce();
-    }).observe(document.body, { childList: true, subtree: true });
+      multiplyWagered();
+    }, 1000);
   })();
 })();
