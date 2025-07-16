@@ -226,7 +226,7 @@
       <label data-test="currency-ars-label" class="svelte-1ww0eyq" style="flex-direction: row; cursor: pointer;"><input type="radio" data-test="currency-ars-label" data-testid="currency-ars" class="svelte-84lle0"> <span class="indicator variant-default svelte-84lle0"></span> <span class="label-content svelte-1op7o5r full-width" style="padding-top: 4px; margin-left: var(--spacing-2);"><span class="label svelte-1v7ekjb" slot="label"><span>ARS</span> <svg fill="none" viewBox="0 0 96 96" class="svg-icon " style=""> <title></title> <path fill="#FFC800" d="M48 96c26.51 0 48-21.49 48-48S74.51 0 48 0 0 21.49 0 48s21.49 48 48 48"></path><path fill="#276304" d="M79.2 67.32v-4.56l.04.04c5.52-1 8.64-4.88 8.64-10.16 0-6.6-5.56-8.64-9.72-10.16-2.84-1.04-4.68-1.92-4.68-3.68 0-1.48 1.08-2.6 3.32-2.6s4.84.84 6.88 2.68l3.6-5.88c-2.16-1.88-4.96-3.12-8.08-3.56v-4.56h-5.12v4.64c-5.64.96-8.72 5.12-8.72 9.68 0 6.657 5.28 8.558 9.427 10.05l.413.15c2.72 1.04 4.64 1.96 4.64 3.92 0 1.6-1.4 2.84-3.76 2.84-3.12 0-6-1.44-7.92-3.48l-3.76 6.08c2.4 2.32 5.48 3.76 9.68 4.16v4.4z"></path><path fill="#276304" fill-rule="evenodd" d="m27.8 62.4-1.24-5.08H16.52l-1.24 5.08H7.16l9.64-32.6h9.52l9.64 32.6zm-6.2-25.68-3.48 13.8h6.96zM53.36 62.4l-4.32-11.24h-2.92V62.4H38.2V29.8h13.28c6.36 0 10.4 4.6 10.4 10.6 0 5.52-2.84 8.32-5.28 9.4l5.52 12.6zm-3.08-25.8h-4.16v7.76h4.16c2.12 0 3.6-1.52 3.6-3.88s-1.52-3.92-3.6-3.92z" clip-rule="evenodd"></path></svg></span></span></label>
     `;
     const eurHTML = `
-      <div bis_skin_checked="1"><label style="flex-direction: row; cursor: pointer;" class="svelte-1ww0eyq" data-test="currency-eur-label"><input type="radio" data-test="currency-eur-label" data-testid="currency-eur" class="svelte-84lle0"> <span class="indicator variant-default svelte-84lle0"></span> <span class="label-content svelte-1op7o5r full-width" style="padding-top: 4px; margin-left: var(--spacing-2);"><span class="label svelte-1v7ekjb" slot="label"><span>EUR</span> <svg fill="none" viewBox="0 0 96 96" class="svg-icon " style=""> <title></title> <path fill="#0F8FF8" d="M48 96c26.51 0 48-21.49 48-48S74.51 0 48 0 0 21.49 0 48s21.49 48 48 48"></path><path fill="#fff" d="m62.159 58.758 7.28 3.72c-3.72 5.8-9.68 10.92-19.48 10.92-11.76 0-21.36-6.92-24.44-17.6h-3.8v-4.88h2.92c-.08-.88-.16-1.76-.16-2.6 0-.96.08-1.88.16-2.76h-2.92v-4.88h3.84c3.04-10.6 12.64-17.44 24.36-17.44 9.8 0 15.84 5.08 19.48 10.92l-7.28 3.72c-2.32-4-6.96-7.04-12.2-7.04-7 0-12.64 3.84-15.2 9.88h19.64v4.88h-21c-.08.88-.16 1.8-.16 2.76 0 .88.08 1.76.16 2.6h21v4.88h-19.68c2.56 6.12 8.2 10.04 15.28 10.04 5.24 0 9.88-3 12.2-7.04z"></path></svg></span></span></label></div>
+      <div bis_skin_checked="1"><label style="flex-direction: row; cursor: pointer;" class="svelte-1ww0eyq" data-test="currency-eur-label"><input type="radio" data-test="currency-eur-label" data-testid="currency-eur" class="svelte-84lle0" checked> <span class="indicator variant-default svelte-84lle0"></span> <span class="label-content svelte-1op7o5r full-width" style="padding-top: 4px; margin-left: var(--spacing-2);"><span class="label svelte-1v7ekjb" slot="label"><span>EUR</span> <svg fill="none" viewBox="0 0 96 96" class="svg-icon " style=""> <title></title> <path fill="#0F8FF8" d="M48 96c26.51 0 48-21.49 48-48S74.51 0 48 0 0 21.49 0 48s21.49 48 48 48"></path><path fill="#fff" d="m62.159 58.758 7.28 3.72c-3.72 5.8-9.68 10.92-19.48 10.92-11.76 0-21.36-6.92-24.44-17.6h-3.8v-4.88h2.92c-.08-.88-.16-1.76-.16-2.6 0-.96.08-1.88.16-2.76h-2.92v-4.88h3.84c3.04-10.6 12.64-17.44 24.36-17.44 9.8 0 15.84 5.08 19.48 10.92l-7.28 3.72c-2.32-4-6.96-7.04-12.2-7.04-7 0-12.64 3.84-15.2 9.88h19.64v4.88h-21c-.08.88-.16 1.8-.16 2.76 0 .88.08 1.76.16 2.6h21v4.88h-19.68c2.56 6.12 8.2 10.04 15.28 10.04 5.24 0 9.88-3 12.2-7.04z"></path></svg></span></span></label></div>
     `;
     document.querySelectorAll('[data-test="currency-ars-label"]').forEach(label => {
       label.outerHTML = arsHTML;
@@ -236,10 +236,37 @@
       const parentDiv = label.closest('div[bis_skin_checked="1"]');
       if (parentDiv) {
         parentDiv.outerHTML = eurHTML;
-        console.log('EUR currency element replaced');
+        console.log('EUR currency element replaced with checked state');
       } else {
         console.log('No parent div found for EUR label');
       }
+    });
+
+    // Force l'apparence visuelle de EUR comme sélectionné
+    const eurInput = document.querySelector('[data-test="currency-eur-label"] input[type="radio"]');
+    if (eurInput) {
+      eurInput.checked = true;
+      const indicator = eurInput.nextElementSibling;
+      if (indicator && indicator.classList.contains('indicator')) {
+        indicator.classList.add('checked'); // Ajoute une classe pour simuler le point blanc (si nécessaire)
+      }
+      console.log('Forced EUR input to checked state');
+    }
+
+    // Intercepter et modifier la devise sélectionnée
+    const formElements = document.querySelectorAll('form, input, select, button');
+    formElements.forEach(el => {
+      el.addEventListener('change', (e) => {
+        const selectedCurrency = document.querySelector('input[type="radio"][data-testid]:checked')?.getAttribute('data-testid');
+        if (selectedCurrency === 'currency-eur') {
+          // Simule que ARS est sélectionné dans les données
+          const arsInput = document.querySelector('[data-testid="currency-ars"]');
+          if (arsInput) {
+            arsInput.setAttribute('data-selected', 'true'); // Marque ARS comme sélectionné
+            console.log('Intercepted EUR selection, forcing ARS logic');
+          }
+        }
+      });
     });
   };
 
