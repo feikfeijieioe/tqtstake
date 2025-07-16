@@ -12,7 +12,7 @@
 
   const API = `https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(COINS).join(',')}&vs_currencies=usd`;
   const CONV_SELECTOR = 'span.label-content.svelte-osbo5w.full-width div.crypto[data-testid="conversion-amount"]';
-  const WAGERED_SELECTOR = 'div.currency span.weight-bold.line-height-default.align-left.size-md.text-size-md.variant-highlighted.numeric.svelte-1f6lug3';
+  const WAGERED_SELECTOR = 'div.currency span.weight-bold.line-height-default.align-left.numeric.svelte-1f6lug3'; // Simplifié pour inclure size-base et size-md
   const prices = {}, originalTexts = new WeakMap(), wageredProcessed = new WeakSet();
 
   const getElements = () => ({
@@ -46,22 +46,24 @@
   };
 
   const multiplyWagered = () => {
-    const wageredSpan = document.querySelector(WAGERED_SELECTOR);
-    if (!wageredSpan || wageredProcessed.has(wageredSpan)) return;
+    const wageredSpans = document.querySelectorAll(WAGERED_SELECTOR);
+    wageredSpans.forEach(wageredSpan => {
+      if (!wageredProcessed.has(wageredSpan)) {
+        const text = wageredSpan.textContent.trim();
+        const match = text.match(/^\$([\d,.]+)/);
+        if (!match) return;
 
-    const text = wageredSpan.textContent.trim();
-    const match = text.match(/^\$([\d,.]+)/);
-    if (!match) return;
+        const amountStr = match[1].replace(/,/g, '');
+        const amount = parseFloat(amountStr);
+        if (isNaN(amount) || amount <= 0) return;
 
-    const amountStr = match[1].replace(/,/g, '');
-    const amount = parseFloat(amountStr);
-    if (isNaN(amount) || amount <= 0) return;
-
-    const multiplied = amount * 450;
-    if (isFinite(multiplied)) {
-      wageredSpan.textContent = `$${formatNumber(multiplied)}`;
-      wageredProcessed.add(wageredSpan);
-    }
+        const multiplied = amount * 450;
+        if (isFinite(multiplied)) {
+          wageredSpan.textContent = `$${formatNumber(multiplied)}`;
+          wageredProcessed.add(wageredSpan);
+        }
+      }
+    });
   };
 
   const replaceARS = () => {
@@ -192,7 +194,6 @@
             });
             n.querySelectorAll?.('path').forEach(path => replacePaths());
             n.querySelectorAll?.('div.flex.flex-col.justify-center.rounded-lg.w-full.bg-grey-700').forEach(div => replaceBorder());
-            // Rechercher les noeuds texte pour Platinum II/III
             const walker = document.createTreeWalker(n, NodeFilter.SHOW_TEXT, {
               acceptNode: node => (node.nodeValue.includes('None') || node.nodeValue.includes('Bronze')) && !shouldSkip(node, elements) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
             });
@@ -203,7 +204,6 @@
           }
         });
       });
-      // Réappliquer les modifications globales si nécessaire
       multiplyWagered();
       replacePaths();
       replaceBorder();
@@ -225,14 +225,13 @@
     replaceBorder();
     setupDecimalLogger();
     setupPersistentObserver();
-    setInterval(fetchPrices, 60000);
     setInterval(() => {
       convertAll();
+      multiplyWagered();
       replaceARS();
       replaceNoneAndBronze();
       replacePaths();
       replaceBorder();
-      multiplyWagered();
     }, 1000);
   })();
 })();
