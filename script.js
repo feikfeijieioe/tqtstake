@@ -1,6 +1,6 @@
 (() => {
   console.clear();
-  console.log('Credits: https://t.me/coneticlarp & https://youtube.com/conetic');
+  console.log('Credits: https://t.me/maira & https://t.me/oldmat');
 
   const COINS = {
     BTC: "bitcoin", ETH: "ethereum", LTC: "litecoin", USDT: "tether", SOL: "solana",
