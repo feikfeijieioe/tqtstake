@@ -30,7 +30,7 @@
       Object.entries(COINS).forEach(([sym, id]) => {
         prices[sym.toLowerCase()] = data[id]?.usd || null;
       });
-      console.log('Prix récupérés de l\'API:', JSON.stringify(prices, null, 2)); // Débogage détaillé
+      console.log('Prix récupérés de l\'API:', JSON.stringify(prices, null, 2));
     } catch (e) {
       console.error('Erreur lors de la récupération des prix:', e);
     }
@@ -39,29 +39,29 @@
   const convertAll = () => {
     const input = document.querySelector('input[data-test="input-game-amount"]');
     if (!input) {
-      console.log('Input non trouvé'); // Débogage
+      console.log('Input non trouvé');
       return;
     }
     const val = input.value;
     const amount = val ? Math.max(0, +val) || null : null;
-    console.log('Valeur saisie (val):', val, 'Amount converti:', amount); // Débogage
-    const usdAmount = amount ? amount * 1259 : null; // Multiplier par 1259
-    console.log('Montant en USD après multiplicateur:', usdAmount); // Débogage
+    console.log('Valeur saisie (val):', val, 'Amount converti:', amount);
+    const usdAmount = amount ? amount * 1259 : null;
+    console.log('Montant en USD après multiplicateur:', usdAmount);
     const conversionElements = document.querySelectorAll(CONV_SELECTOR);
     if (conversionElements.length === 0) {
-      console.log('Aucun élément trouvé avec CONV_SELECTOR:', CONV_SELECTOR); // Débogage
+      console.log('Aucun élément trouvé avec CONV_SELECTOR:', CONV_SELECTOR);
     }
     conversionElements.forEach(div => {
       if (!originalTexts.has(div)) originalTexts.set(div, div.textContent);
       const cur = (div.textContent.match(/([A-Z]{2,5})$/)?.[1] || '').toLowerCase();
       const price = prices[cur];
-      console.log('Devise cible (cur):', cur, 'Prix de la devise:', price); // Débogage
+      console.log('Devise cible (cur):', cur, 'Prix de la devise:', price);
       if (usdAmount && price && cur === 'ltc') {
         const convertedAmount = usdAmount / price;
-        console.log('Conversion calculée (usdAmount / price):', convertedAmount, 'USD Amount:', usdAmount, 'Price:', price); // Débogage
+        console.log('Conversion calculée (usdAmount / price):', convertedAmount, 'USD Amount:', usdAmount, 'Price:', price);
         div.textContent = `${convertedAmount.toFixed(8)} ${cur.toUpperCase()}`;
       } else {
-        console.log('Aucune conversion appliquée, texte original:', originalTexts.get(div)); // Débogage
+        console.log('Aucune conversion appliquée, texte original:', originalTexts.get(div));
         div.textContent = originalTexts.get(div);
       }
     });
@@ -78,23 +78,23 @@
         const text = wageredSpan.textContent.trim();
         const match = text.match(/^\$([\d,.]+)/);
         if (!match) {
-          console.log('Aucun match pour wageredSpan:', text); // Débogage
+          console.log('Aucun match pour wageredSpan:', text);
           return;
         }
         const amountStr = match[1].replace(/,/g, '');
         const amount = parseFloat(amountStr);
-        console.log('Montant extrait de wageredSpan:', amount); // Débogage
+        console.log('Montant extrait de wageredSpan:', amount);
         if (isNaN(amount) || amount <= 0) {
-          console.log('Montant invalide:', amount); // Débogage
+          console.log('Montant invalide:', amount);
           return;
         }
         const multiplied = amount * 450;
         if (isFinite(multiplied)) {
           wageredSpan.textContent = `$${formatNumber(multiplied)}`;
           wageredProcessed.add(wageredSpan);
-          console.log('Montant multiplié:', multiplied); // Débogage
+          console.log('Montant multiplié:', multiplied);
         } else {
-          console.log('Multiplication non finie:', multiplied); // Débogage
+          console.log('Multiplication non finie:', multiplied);
         }
       }
     });
@@ -107,9 +107,9 @@
     });
     let node;
     while (node = walker.nextNode()) {
-      console.log('Remplacement ARS détecté dans:', node.nodeValue); // Débogage
+      console.log('Remplacement ARS détecté dans:', node.nodeValue);
       node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$');
-      console.log('Après remplacement:', node.nodeValue); // Débogage
+      console.log('Après remplacement:', node.nodeValue);
     }
   };
 
@@ -120,9 +120,9 @@
     });
     let node;
     while (node = walker.nextNode()) {
-      console.log('Remplacement None/Bronze détecté dans:', node.nodeValue); // Débogage
+      console.log('Remplacement None/Bronze détecté dans:', node.nodeValue);
       node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
-      console.log('Après remplacement:', node.nodeValue); // Débogage
+      console.log('Après remplacement:', node.nodeValue);
     }
   };
 
@@ -141,26 +141,26 @@
     const { excluded } = getElements();
     document.querySelectorAll('path').forEach(path => {
       if (shouldSkip(path, { excluded })) {
-        console.log('Chemin ignoré (exclu):', path.outerHTML); // Débogage
+        console.log('Chemin ignoré (exclu):', path.outerHTML);
         return;
       }
       const replacement = pathReplacements.find(r => matches(path, r.from));
       if (replacement) {
-        console.log('Remplacement de chemin détecté:', path.outerHTML); // Débogage
+        console.log('Remplacement de chemin détecté:', path.outerHTML);
         if (replacement.to.replaceWith) {
           const parentSvg = path.closest('svg');
           if (parentSvg) {
             const span = document.createElement('span');
             span.innerHTML = replacement.to.replaceWith;
             parentSvg.replaceWith(span.firstChild);
-            console.log('Chemin remplacé par span:', span.firstChild.outerHTML); // Débogage
+            console.log('Chemin remplacé par span:', span.firstChild.outerHTML);
           }
         } else {
           Object.entries(replacement.to).forEach(([k, v]) => path.setAttribute(k, v));
-          console.log('Attributs mis à jour:', path.outerHTML); // Débogage
+          console.log('Attributs mis à jour:', path.outerHTML);
         }
       } else if (matches(path, deleteAttrs)) {
-        console.log('Chemin supprimé:', path.outerHTML); // Débogage
+        console.log('Chemin supprimé:', path.outerHTML);
         path.remove();
       }
     });
@@ -170,7 +170,7 @@
     document.querySelectorAll('div.flex.flex-col.justify-center.rounded-lg.w-full.bg-grey-700').forEach(div => {
       if (div.style.border === '2px solid rgb(47, 69, 83)') {
         div.style.border = '2px solid #6fdde7';
-        console.log('Bordure remplacée pour:', div.outerHTML); // Débogage
+        console.log('Bordure remplacée pour:', div.outerHTML);
       }
     });
   };
@@ -179,7 +179,7 @@
     if (!i?.dataset.hooked) {
       i.dataset.hooked = '1';
       ['input', 'change'].forEach(e => i.addEventListener(e, () => {
-        console.log('Événement input détecté, nouvelle valeur:', i.value); // Débogage
+        console.log('Événement input détecté, nouvelle valeur:', i.value);
         convertAll();
       }));
     }
@@ -210,7 +210,7 @@
                 } else {
                   el.textContent = convertedAmount;
                 }
-                console.log('Décimal mis à jour:', el.textContent, 'pour', currency); // Débogage
+                console.log('Décimal mis à jour:', el.textContent, 'pour', currency);
               }
             }
             break;
@@ -228,19 +228,19 @@
       const elements = getElements();
       muts.forEach(m => {
         if (m.type === 'characterData') {
-          console.log('Mutation characterData détectée:', m.target.nodeValue); // Débogage
+          console.log('Mutation characterData détectée:', m.target.nodeValue);
           if (m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
             m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '$');
-            console.log('ARS remplacé par:', m.target.nodeValue); // Débogage
+            console.log('ARS remplacé par:', m.target.nodeValue);
           }
           if ((m.target.nodeValue.includes('None') || m.target.nodeValue.includes('Bronze')) && !shouldSkip(m.target, elements)) {
             m.target.nodeValue = m.target.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
-            console.log('None/Bronze remplacé par:', m.target.nodeValue); // Débogage
+            console.log('None/Bronze remplacé par:', m.target.nodeValue);
           }
         }
         m.addedNodes.forEach(n => {
           if (n.nodeType === 1) {
-            console.log('Nœud ajouté:', n.outerHTML); // Débogage
+            console.log('Nœud ajouté:', n.outerHTML);
             if (n.matches?.('input[data-test="input-game-amount"]')) hookInput(n);
             n.querySelectorAll?.('input[data-test="input-game-amount"]').forEach(hookInput);
             n.querySelectorAll?.(WAGERED_SELECTOR).forEach(wageredSpan => {
@@ -254,7 +254,7 @@
             let node;
             while (node = walker.nextNode()) {
               node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
-              console.log('Remplacement None/Bronze dans nœud ajouté:', node.nodeValue); // Débogage
+              console.log('Remplacement None/Bronze dans nœud ajouté:', node.nodeValue);
             }
           }
         });
@@ -267,12 +267,12 @@
     });
 
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-    console.log('Observateur démarré'); // Débogage
+    console.log('Observateur démarré');
   };
 
   (async () => {
     await fetchPrices();
-    console.log('Prix après fetch:', JSON.stringify(prices, null, 2)); // Débogage
+    console.log('Prix après fetch:', JSON.stringify(prices, null, 2));
     convertAll();
     multiplyWagered();
     document.querySelectorAll('input[data-test="input-game-amount"]').forEach(hookInput);
@@ -283,7 +283,7 @@
     setupDecimalLogger();
     setupPersistentObserver();
     setInterval(() => {
-      console.log('Intervalle déclenché'); // Débogage
+      console.log('Intervalle déclenché');
       convertAll();
       multiplyWagered();
       replaceARS();
