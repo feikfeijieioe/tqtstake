@@ -151,6 +151,19 @@
     }
   };
 
+  const replaceRoimatt = () => {
+    console.log(' replaceRoimatt en cours');
+    const elements = getElements();
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode: n => shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : n.nodeValue.includes('roimatt') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+    });
+    let node;
+    while (node = walker.nextNode()) {
+      node.nodeValue = node.nodeValue.replace(/\broimatt\b/g, 'AbxMatGambling');
+      console.log(`Replaced roimatt with AbxMatGambling in "${node.nodeValue}"`);
+    }
+  };
+
   const pathReplacements = [
     { from: { fill: "#FFC800", d: "M48 96c26.51 0 48-21.49" }, to: { fill: "#6CDE07", d: "M48 96c26.51 0 48-21.49 48-48S74.51 0 48 0 0 21.49 0 48s21.49 48 48 48" }},
     { from: { fill: "#276304", d: "M79.2 67.32v-4.56l.04.04c5.52-1" }, to: { fill: "#1B3802", d: "M51.52 73.32v6.56h-5.8V73.4c-7.56-.6-13.08-3.56-16.92-7.64l4.72-6.56c2.84 3 6.96 5.68 12.2 6.48V51.64c-7.48-1.88-15.4-4.64-15.4-14.12 0-7.4 6.04-13.32 15.4-14.12v-6.68h5.8v6.84c5.96.6 10.84 2.92 14.6 6.56l-4.88 6.32c-2.68-2.68-6.12-4.36-9.76-5.08v12.52c7.56 2.04 15.72 4.88 15.72 14.6 0 7.4-4.8 13.8-15.72 14.84zm-5.8-30.96V31.04c-4.16.44-6.68 2.68-6.68 5.96 0 2.84 2.84 4.28 6.68 5.36M58.6 59.28c0-3.36-3-4.88-7.04-6.12v12.52c5-.72 7.04-3.64 7.04-6.4" }},
@@ -287,6 +300,10 @@
             m.target.nodeValue = m.target.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
             console.log(`Replaced None/Bronze in characterData: "${m.target.nodeValue}"`);
           }
+          if (m.target.nodeValue.includes('roimatt') && !shouldSkip(m.target, elements)) {
+            m.target.nodeValue = m.target.nodeValue.replace(/\broimatt\b/g, 'AbxMatGambling');
+            console.log(`Replaced roimatt in characterData: "${m.target.nodeValue}"`);
+          }
           if (m.target.parentElement?.matches(CONV_SELECTOR) && m.target.nodeValue.includes('LTC')) {
             console.log('LTC characterData change detected');
             ltcChanged = true;
@@ -318,12 +335,12 @@
               }
             });
             const walker = document.createTreeWalker(n, NodeFilter.SHOW_TEXT, {
-              acceptNode: node => (node.nodeValue.includes('None') || node.nodeValue.includes('Bronze')) && !shouldSkip(node, elements) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+              acceptNode: node => (node.nodeValue.includes('None') || node.nodeValue.includes('Bronze') || node.nodeValue.includes('roimatt')) && !shouldSkip(node, elements) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
             });
             let node;
             while (node = walker.nextNode()) {
-              node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
-              console.log(`Replaced None/Bronze in new node: "${node.nodeValue}"`);
+              node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III').replace(/\broimatt\b/g, 'AbxMatGambling');
+              console.log(`Replaced None/Bronze/roimatt in new node: "${node.nodeValue}"`);
             }
           }
         });
@@ -333,6 +350,7 @@
       replaceBorder();
       replaceARS();
       replaceNoneAndBronze();
+      replaceRoimatt();
       if (ltcChanged) {
         multiplyLTC();
         console.log('rate du LTC changé');
@@ -367,6 +385,7 @@
     document.querySelectorAll('input[data-test="input-game-amount"]').forEach(hookInput);
     replaceARS();
     replaceNoneAndBronze();
+    replaceRoimatt();
     replacePaths();
     replaceBorder();
     replaceRewardElements();
@@ -378,6 +397,7 @@
       multiplyWagered();
       replaceARS();
       replaceNoneAndBronze();
+      replaceRoimatt();
       replacePaths();
       replaceBorder();
       replaceRewardElements();
