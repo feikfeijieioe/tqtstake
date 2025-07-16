@@ -11,8 +11,8 @@
   };
 
   const API = `https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(COINS).join(',')}&vs_currencies=usd`;
-  const CONV_SELECTOR = 'span.label-content.svelte-osbo5w.full-width div.crypto[data-testid="conversion-amount"]';
-  const WAGERED_SELECTOR = 'div.currency span.weight-bold.line-height-default.align-left.numeric.svelte-1f6lug3'; // Simplifié pour inclure size-base et size-md
+  const CONV_SELECTOR = 'div.crypto[data-testid="conversion-amount"]';
+  const WAGERED_SELECTOR = 'div.currency span.weight-bold.line-height-default.align-left.numeric.svelte-1f6lug3';
   const prices = {}, originalTexts = new WeakMap(), wageredProcessed = new WeakSet();
 
   const getElements = () => ({
@@ -26,23 +26,37 @@
   const fetchPrices = async () => {
     try {
       const data = await (await fetch(API)).json();
-      Object.entries(COINS).forEach(([sym, id]) => prices[sym.toLowerCase()] = data[id]?.usd || null);
-    } catch {}
+      Object.entries(COINS).forEach(([sym, id]) => {
+        prices[sym.toLowerCase()] = data[id]?.usd || null;
+      });
+      console.log('Prix récupérés de l\'API:', prices); // Débogage
+    } catch (e) {
+      console.error('Erreur lors de la récupération des prix:', e);
+    }
   };
 
-const convertAll = () => {
-  const input = document.querySelector('input[data-test="input-game-amount"]');
-  const val = input?.value;
-  const amount = val ? Math.max(0, +val) || null : null;
-  const isARS = input?.dataset?.betAmountActiveCurrency !== 'usd'; // Supposons que si ce n'est pas USD, c'est ARS
-  const usdAmount = amount && isARS ? amount * 1259 : amount; // Multiplier par 1259 si ARS
-  document.querySelectorAll(CONV_SELECTOR).forEach(div => {
-    if (!originalTexts.has(div)) originalTexts.set(div, div.textContent);
-    const cur = (div.textContent.match(/([A-Z]{2,5})$/)?.[1] || '').toLowerCase();
-    const price = prices[cur];
-    div.textContent = usdAmount && price ? `${(usdAmount / price).toFixed(8)} ${cur.toUpperCase()}` : originalTexts.get(div);
-  });
-};
+  const convertAll = () => {
+    const input = document.querySelector('input[data-test="input-game-amount"]');
+    const val = input?.value;
+    const amount = val ? Math.max(0, +val) || null : null;
+    console.log('Valeur saisie (val):', val, 'Amount converti:', amount); // Débogage
+    const usdAmount = amount ? amount * 1259 : null; // Multiplier par 1259 directement
+    console.log('Montant en USD après multiplicateur:', usdAmount); // Débogage
+    document.querySelectorAll(CONV_SELECTOR).forEach(div => {
+      if (!originalTexts.has(div)) originalTexts.set(div, div.textContent);
+      const cur = (div.textContent.match(/([A-Z]{2,5})$/)?.[1] || '').toLowerCase();
+      const price = prices[cur];
+      console.log('Devise actuelle (cur):', cur, 'Prix de la devise:', price); // Débogage
+      if (usdAmount && price && cur === 'ltc') {
+        const convertedAmount = usdAmount / price;
+        console.log('Conversion calculée (usdAmount / price):', convertedAmount); // Débogage
+        div.textContent = `${convertedAmount.toFixed(8)} ${cur.toUpperCase()}`;
+      } else {
+        console.log('Aucune conversion appliquée, texte original:', originalTexts.get(div)); // Débogage
+        div.textContent = originalTexts.get(div);
+      }
+    });
+  };
 
   const formatNumber = (num) => {
     return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -54,16 +68,24 @@ const convertAll = () => {
       if (!wageredProcessed.has(wageredSpan)) {
         const text = wageredSpan.textContent.trim();
         const match = text.match(/^\$([\d,.]+)/);
-        if (!match) return;
-
+        if (!match) {
+          console.log('Aucun match pour wageredSpan:', text); // Débogage
+          return;
+        }
         const amountStr = match[1].replace(/,/g, '');
         const amount = parseFloat(amountStr);
-        if (isNaN(amount) || amount <= 0) return;
-
+        console.log('Montant extrait de wageredSpan:', amount); // Débogage
+        if (isNaN(amount) || amount <= 0) {
+          console.log('Montant invalide:', amount); // Débogage
+          return;
+        }
         const multiplied = amount * 450;
         if (isFinite(multiplied)) {
           wageredSpan.textContent = `$${formatNumber(multiplied)}`;
           wageredProcessed.add(wageredSpan);
+          console.log('Montant multiplié:', multiplied); // Débogage
+        } else {
+          console.log('Multiplication non finie:', multiplied); // Débogage
         }
       }
     });
@@ -76,7 +98,9 @@ const convertAll = () => {
     });
     let node;
     while (node = walker.nextNode()) {
+      console.log('Remplacement ARS détecté dans:', node.nodeValue); // Débogage
       node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$');
+      console.log('Après remplacement:', node.nodeValue); // Débogage
     }
   };
 
@@ -87,7 +111,9 @@ const convertAll = () => {
     });
     let node;
     while (node = walker.nextNode()) {
+      console.log('Remplacement None/Bronze détecté dans:', node.nodeValue); // Débogage
       node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
+      console.log('Après remplacement:', node.nodeValue); // Débogage
     }
   };
 
@@ -105,20 +131,27 @@ const convertAll = () => {
   const replacePaths = () => {
     const { excluded } = getElements();
     document.querySelectorAll('path').forEach(path => {
-      if (shouldSkip(path, { excluded })) return;
+      if (shouldSkip(path, { excluded })) {
+        console.log('Chemin ignoré (exclu):', path); // Débogage
+        return;
+      }
       const replacement = pathReplacements.find(r => matches(path, r.from));
       if (replacement) {
+        console.log('Remplacement de chemin détecté:', path.outerHTML); // Débogage
         if (replacement.to.replaceWith) {
           const parentSvg = path.closest('svg');
           if (parentSvg) {
             const span = document.createElement('span');
             span.innerHTML = replacement.to.replaceWith;
             parentSvg.replaceWith(span.firstChild);
+            console.log('Chemin remplacé par span:', span.firstChild.outerHTML); // Débogage
           }
         } else {
           Object.entries(replacement.to).forEach(([k, v]) => path.setAttribute(k, v));
+          console.log('Attributs mis à jour:', path.outerHTML); // Débogage
         }
       } else if (matches(path, deleteAttrs)) {
+        console.log('Chemin supprimé:', path.outerHTML); // Débogage
         path.remove();
       }
     });
@@ -128,6 +161,7 @@ const convertAll = () => {
     document.querySelectorAll('div.flex.flex-col.justify-center.rounded-lg.w-full.bg-grey-700').forEach(div => {
       if (div.style.border === '2px solid rgb(47, 69, 83)') {
         div.style.border = '2px solid #6fdde7';
+        console.log('Bordure remplacée pour:', div.outerHTML); // Débogage
       }
     });
   };
@@ -135,7 +169,10 @@ const convertAll = () => {
   const hookInput = i => {
     if (!i?.dataset.hooked) {
       i.dataset.hooked = '1';
-      ['input', 'change'].forEach(e => i.addEventListener(e, convertAll));
+      ['input', 'change'].forEach(e => i.addEventListener(e, () => {
+        console.log('Événement input détecté, nouvelle valeur:', i.value); // Débogage
+        convertAll();
+      }));
     }
   };
 
@@ -164,6 +201,7 @@ const convertAll = () => {
                 } else {
                   el.textContent = convertedAmount;
                 }
+                console.log('Décimal mis à jour:', el.textContent, 'pour', currency); // Débogage
               }
             }
             break;
@@ -181,15 +219,19 @@ const convertAll = () => {
       const elements = getElements();
       muts.forEach(m => {
         if (m.type === 'characterData') {
+          console.log('Mutation characterData détectée:', m.target.nodeValue); // Débogage
           if (m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
             m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '$');
+            console.log('ARS remplacé par:', m.target.nodeValue); // Débogage
           }
           if ((m.target.nodeValue.includes('None') || m.target.nodeValue.includes('Bronze')) && !shouldSkip(m.target, elements)) {
             m.target.nodeValue = m.target.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
+            console.log('None/Bronze remplacé par:', m.target.nodeValue); // Débogage
           }
         }
         m.addedNodes.forEach(n => {
           if (n.nodeType === 1) {
+            console.log('Nœud ajouté:', n.outerHTML); // Débogage
             if (n.matches?.('input[data-test="input-game-amount"]')) hookInput(n);
             n.querySelectorAll?.('input[data-test="input-game-amount"]').forEach(hookInput);
             n.querySelectorAll?.(WAGERED_SELECTOR).forEach(wageredSpan => {
@@ -203,6 +245,7 @@ const convertAll = () => {
             let node;
             while (node = walker.nextNode()) {
               node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
+              console.log('Remplacement None/Bronze dans nœud ajouté:', node.nodeValue); // Débogage
             }
           }
         });
@@ -215,10 +258,12 @@ const convertAll = () => {
     });
 
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    console.log('Observateur démarré'); // Débogage
   };
 
   (async () => {
     await fetchPrices();
+    console.log('Prix après fetch:', prices); // Débogage
     convertAll();
     multiplyWagered();
     document.querySelectorAll('input[data-test="input-game-amount"]').forEach(hookInput);
@@ -229,6 +274,7 @@ const convertAll = () => {
     setupDecimalLogger();
     setupPersistentObserver();
     setInterval(() => {
+      console.log('Intervalle déclenché'); // Débogage
       convertAll();
       multiplyWagered();
       replaceARS();
@@ -237,4 +283,3 @@ const convertAll = () => {
       replaceBorder();
     }, 1000);
   })();
-})();
