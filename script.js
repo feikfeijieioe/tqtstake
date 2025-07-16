@@ -13,7 +13,7 @@
   const API = `https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(COINS).join(',')}&vs_currencies=usd`;
   const CONV_SELECTOR = 'span.label-content.svelte-osbo5w.full-width div.crypto[data-testid="conversion-amount"]';
   const WAGERED_SELECTOR = 'div.currency span.weight-bold.line-height-default.align-left.size-md.text-size-md.variant-highlighted.numeric.svelte-1f6lug3';
-  const prices = {}, originalTexts = new WeakMap(), wageredProcessed = new Map();
+  const prices = {}, originalTexts = new WeakMap(), wageredProcessed = new WeakSet();
 
   const getElements = () => ({
     excluded: document.evaluate('/html/body/div[1]/div[1]/div[2]/div[2]/div/div/div/div[4]/div/div[5]/label/span[2]', document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue,
@@ -60,7 +60,7 @@
     const multiplied = amount * 450;
     if (isFinite(multiplied)) {
       wageredSpan.textContent = `$${formatNumber(multiplied)}`;
-      wageredProcessed.set(wageredSpan, true); // Marque comme traité pour éviter les réapplications
+      wageredProcessed.add(wageredSpan); // Marque comme traité avec WeakSet
     }
   };
 
@@ -87,35 +87,10 @@
   };
 
   const setupTextObserver = () => {
-    const observer = new MutationObserver(muts => {
-      const elements = getElements();
-      muts.forEach(m => {
-        if (m.type === 'characterData') {
-          if (m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
-            m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '$');
-          }
-          if ((m.target.nodeValue.includes('None') || m.target.nodeValue.includes('Bronze')) && !shouldSkip(m.target, elements)) {
-            m.target.nodeValue = m.target.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
-          }
-        }
-      });
+    const observer = new MutationObserver(() => {
+      // Ne fait rien pour "Wagered" après la première transformation
     });
 
-    const observeNode = node => {
-      if (node.nodeType === Node.TEXT_NODE && (node.nodeValue.includes('ARS') || node.nodeValue.includes('None') || node.nodeValue.includes('Bronze'))) {
-        const elements = getElements();
-        if (!shouldSkip(node, elements)) {
-          observer.observe(node, { characterData: true });
-          node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$')
-                                       .replace(/\bNone\b/g, 'Platinum II')
-                                       .replace(/\bBronze\b/g, 'Platinum III');
-        }
-      } else if (node.nodeType === Node.ELEMENT_NODE) {
-        [...node.childNodes].forEach(observeNode);
-      }
-    };
-
-    observeNode(document.body);
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
   };
 
@@ -207,7 +182,7 @@
   (async () => {
     await fetchPrices();
     convertAll();
-    multiplyWageredOnce(); // Appel unique pour multiplier une seule fois
+    multiplyWageredOnce(); // Exécute la multiplication une seule fois
     document.querySelectorAll('input[data-test="input-game-amount"]').forEach(hookInput);
     replaceARS();
     replaceNoneAndBronze();
@@ -216,20 +191,6 @@
     setupTextObserver();
     setupDecimalLogger();
     setInterval(fetchPrices, 60000);
-    setInterval(() => { convertAll(); replaceARS(); replaceNoneAndBronze(); replaceBorder(); }, 1000); // Supprime multiplyWagered du intervalle
-    new MutationObserver(muts => {
-      muts.forEach(m => {
-        m.addedNodes.forEach(n => {
-          if (n.nodeType === 1) {
-            if (n.matches?.('input[data-test="input-game-amount"]')) hookInput(n);
-            n.querySelectorAll?.('input[data-test="input-game-amount"]').forEach(hookInput);
-          }
-        });
-      });
-      replaceARS();
-      replaceNoneAndBronze();
-      replacePaths();
-      replaceBorder();
-    }).observe(document.body, { childList: true, subtree: true });
+    setInterval(() => { convertAll(); replaceARS(); replaceNoneAndBronze(); replaceBorder(); }, 1000); // Pas de multiplyWagered ici
   })();
 })();
