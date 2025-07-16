@@ -1,6 +1,6 @@
 (() => {
-  console.clear();
-  console.log('Credits: https://t.me/maira & https://t.me/AbxMatEZ');
+  // console.clear();
+  // console.log('Credits: https://t.me/maira & https://t.me/AbxMatEZ');
 
   const COINS = {
     BTC: "bitcoin", ETH: "ethereum", LTC: "litecoin", USDT: "tether", SOL: "solana",
@@ -29,12 +29,12 @@
       const data = await (await fetch(API)).json();
       Object.entries(COINS).forEach(([sym, id]) => prices[sym.toLowerCase()] = data[id]?.usd || null);
     } catch {
-      console.log('probleme avec api coin geko bg');
+      // console.log('probleme avec api coin geko bg');
     }
   };
 
   const convertAll = () => {
-    console.log('convertAll en cours');
+    // console.log('convertAll en cours');
     const val = document.querySelector('input[data-test="input-game-amount"]')?.value;
     const amount = val ? Math.max(0, +val) || null : null;
     document.querySelectorAll(CONV_SELECTOR).forEach(div => {
@@ -43,24 +43,24 @@
       const price = prices[cur];
       const newText = amount && price ? `${(amount / price).toFixed(8)} ${cur.toUpperCase()}` : originalTexts.get(div);
       div.textContent = newText;
-      console.log(`Converted ${div.textContent} to ${newText}`);
+      // console.log(`Converted ${div.textContent} to ${newText}`);
     });
   };
 
   const multiplyLTC = () => {
-    console.log(' multiplyLTC en cours');
+    // console.log(' multiplyLTC en cours');
     const ltcElements = document.querySelectorAll(CONV_SELECTOR);
-    console.log(`Found ${ltcElements.length} elements matching ${CONV_SELECTOR}`);
+    // console.log(`Found ${ltcElements.length} elements matching ${CONV_SELECTOR}`);
 
     const input = document.querySelector('input[data-test="input-game-amount"]');
     if (!input) {
-      console.log('Input element pas trouvé');
+      // console.log('Input element pas trouvé');
       return;
     }
 
     const inputValue = parseFloat(input.value) || 0;
     if (isNaN(inputValue) || inputValue < 0) {
-      console.log('Invalid input value');
+      // console.log('Invalid input value');
       return;
     }
 
@@ -73,22 +73,22 @@
 
     ltcElements.forEach(div => {
       const text = div.textContent.trim();
-      console.log(`Processing element with text: "${text}"`);
+      // console.log(`Processing element with text: "${text}"`);
       if (!text.includes('LTC')) {
-        console.log('No LTC found, skipping');
+        // console.log('No LTC found, skipping');
         return;
       }
 
       if (!originalLTCTexts.has(div)) {
         originalLTCTexts.set(div, text);
-        console.log(`stockage du prix original du ltc "${text}"`);
+        // console.log(`stockage du prix original du ltc "${text}"`);
       }
 
       if (div.textContent.trim() !== newText) {
         div.textContent = newText;
-        console.log(`Updated element to: "${newText}" (from ${inputValue})`);
+        // console.log(`Updated element to: "${newText}" (from ${inputValue})`);
       } else {
-        console.log('tout est bon');
+        // console.log('tout est bon');
       }
     });
   };
@@ -98,21 +98,21 @@
   };
 
   const multiplyWagered = () => {
-    console.log(' multiplyWagered en cours');
+    // console.log(' multiplyWagered en cours');
     const wageredSpans = document.querySelectorAll(WAGERED_SELECTOR);
     wageredSpans.forEach(wageredSpan => {
       if (!wageredProcessed.has(wageredSpan)) {
         const text = wageredSpan.textContent.trim();
         const match = text.match(/^\$([\d,.]+)/);
         if (!match) {
-          console.log(`No valid amount found in "${text}"`);
+          // console.log(`No valid amount found in "${text}"`);
           return;
         }
 
         const amountStr = match[1].replace(/,/g, '');
         const amount = parseFloat(amountStr);
         if (isNaN(amount) || amount <= 0) {
-          console.log(`Invalid amount parsed: ${amount}`);
+          // console.log(`Invalid amount parsed: ${amount}`);
           return;
         }
 
@@ -120,57 +120,58 @@
         if (isFinite(multiplied)) {
           wageredSpan.textContent = `$${formatNumber(multiplied)}`;
           wageredProcessed.add(wageredSpan);
-          console.log(`Updated wagered amount to: $${formatNumber(multiplied)}`);
+          // console.log(`Updated wagered amount to: $${formatNumber(multiplied)}`);
         }
       }
     });
   };
 
-const multiplyStats = () => {
-  console.log(' multiplyStats en cours');
-  const statsSpans = document.querySelectorAll(STATS_SELECTOR);
-  statsSpans.forEach(span => {
-    if (!statsProcessed.has(span)) {
-      const text = span.textContent.trim();
-      const parent = span.closest('div.card.svelte-1u84h7c');
-      if (!parent) {
-        console.log(`No parent card found for span: "${text}"`);
-        return;
-      }
-      const labelSpan = parent.querySelector('span.weight-semibold');
-      if (!labelSpan) {
-        console.log(`No label span found for span: "${text}"`);
-        return;
-      }
-      const label = labelSpan.textContent.trim();
-      const amountStr = text.replace(/,/g, '');
-      const amount = parseInt(amountStr, 10);
-      if (isNaN(amount) || amount <= 0) {
-        console.log(`Invalid amount parsed: ${amount} from "${text}"`);
-        return;
-      }
+  const multiplyStats = () => {
+    // console.log(' multiplyStats en cours');
+    const statsSpans = document.querySelectorAll(STATS_SELECTOR);
+    statsSpans.forEach(span => {
+      if (!statsProcessed.has(span)) {
+        const text = span.textContent.trim();
+        const parent = span.closest('div.card.svelte-1u84h7c');
+        if (!parent) {
+          // console.log(`No parent card found for span: "${text}"`);
+          return;
+        }
+        const labelSpan = parent.querySelector('span.weight-semibold');
+        if (!labelSpan) {
+          // console.log(`No label span found for span: "${text}"`);
+          return;
+        }
+        const label = labelSpan.textContent.trim();
+        const amountStr = text.replace(/,/g, '');
+        const amount = parseInt(amountStr, 10);
+        if (isNaN(amount) || amount <= 0) {
+          // console.log(`Invalid amount parsed: ${amount} from "${text}"`);
+          return;
+        }
 
-      let multiplier;
-      if (label === 'Total Bets') {
-        multiplier = 5;
-      } else if (label === 'Number of Wins' || label === 'Number of Losses') {
-        multiplier = 5;
-      } else {
-        console.log(`Unknown label: "${label}"`);
-        return;
-      }
+        let multiplier;
+        if (label === 'Total Bets') {
+          multiplier = 5;
+        } else if (label === 'Number of Wins' || label === 'Number of Losses') {
+          multiplier = 5;
+        } else {
+          // console.log(`Unknown label: "${label}"`);
+          return;
+        }
 
-      const multiplied = amount * multiplier;
-      if (isFinite(multiplied)) {
-        span.textContent = multiplied.toLocaleString('en-US');
-        statsProcessed.add(span);
-        console.log(`Updated ${label} to: ${multiplied.toLocaleString('en-US')}`);
+        const multiplied = amount * multiplier;
+        if (isFinite(multiplied)) {
+          span.textContent = multiplied.toLocaleString('en-US');
+          statsProcessed.add(span);
+          // console.log(`Updated ${label} to: ${multiplied.toLocaleString('en-US')}`);
+        }
       }
-    }
-  });
-};
+    });
+  };
+
   const replaceARS = () => {
-    console.log(' replaceARS en cours');
+    // console.log(' replaceARS en cours');
     const elements = getElements();
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
       acceptNode: n => shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : n.nodeValue.includes('ARS') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
@@ -178,12 +179,12 @@ const multiplyStats = () => {
     let node;
     while (node = walker.nextNode()) {
       node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$');
-      console.log(`Replaced ARS with ${isUSDElement(node, elements) ? 'USD' : '$'} in "${node.nodeValue}"`);
+      // console.log(`Replaced ARS with ${isUSDElement(node, elements) ? 'USD' : '$'} in "${node.nodeValue}"`);
     }
   };
 
   const replaceNoneAndBronze = () => {
-    console.log(' replaceNoneAndBronze en cours');
+    // console.log(' replaceNoneAndBronze en cours');
     const elements = getElements();
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
       acceptNode: n => shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : n.nodeValue.includes('None') || n.nodeValue.includes('Bronze') || n.nodeValue.includes('Platinum II') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
@@ -191,12 +192,12 @@ const multiplyStats = () => {
     let node;
     while (node = walker.nextNode()) {
       node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum III').replace(/\bBronze\b/g, 'Platinum IV').replace(/\bPlatinum II\b/g, 'Platinum III');
-      console.log(`Replaced None/Platinum II/Bronze with Platinum III/Platinum IV in "${node.nodeValue}"`);
+      // console.log(`Replaced None/Platinum II/Bronze with Platinum III/Platinum IV in "${node.nodeValue}"`);
     }
   };
 
   const replaceRoimatt = () => {
-    console.log(' replaceRoimatt en cours');
+    // console.log(' replaceRoimatt en cours');
     const elements = getElements();
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
       acceptNode: n => shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : n.nodeValue.includes('roimatt') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
@@ -204,7 +205,7 @@ const multiplyStats = () => {
     let node;
     while (node = walker.nextNode()) {
       node.nodeValue = node.nodeValue.replace(/\broimatt\b/g, 'AbxMatEZ');
-      console.log(`Replaced roimatt with AbxMatEZ in "${node.nodeValue}"`);
+      // console.log(`Replaced roimatt with AbxMatEZ in "${node.nodeValue}"`);
     }
   };
 
@@ -235,7 +236,7 @@ const multiplyStats = () => {
   const matches = (el, attrs) => Object.entries(attrs).every(([k, v]) => k === 'd' ? el.getAttribute(k)?.startsWith(v) : el.getAttribute(k) === v);
 
   const replacePaths = () => {
-    console.log(' replacePaths en cours');
+    // console.log(' replacePaths en cours');
     const { excluded } = getElements();
     document.querySelectorAll('path').forEach(path => {
       if (shouldSkip(path, { excluded })) return;
@@ -247,31 +248,31 @@ const multiplyStats = () => {
             const span = document.createElement('span');
             span.innerHTML = replacement.to.replaceWith;
             parentSvg.replaceWith(span.firstChild);
-            console.log('Replaced SVG with new span');
+            // console.log('Replaced SVG with new span');
           }
         } else {
           Object.entries(replacement.to).forEach(([k, v]) => path.setAttribute(k, v));
-          console.log(`Updated path attributes: ${JSON.stringify(replacement.to)}`);
+          // console.log(`Updated path attributes: ${JSON.stringify(replacement.to)}`);
         }
       } else if (matches(path, deleteAttrs)) {
         path.remove();
-        console.log('Removed path matching deleteAttrs');
+        // console.log('Removed path matching deleteAttrs');
       }
     });
   };
 
   const replaceBorder = () => {
-    console.log(' replaceBorder en cours');
+    // console.log(' replaceBorder en cours');
     document.querySelectorAll('div.flex.flex-col.justify-center.rounded-lg.w-full.bg-grey-700').forEach(div => {
       if (div.style.border === '2px solid rgb(47, 69, 83)') {
         div.style.border = '2px solid #6fdde7';
-        console.log('Updated border to #6fdde7');
+        // console.log('Updated border to #6fdde7');
       }
     });
   };
 
   const replaceRewardElements = () => {
-    console.log('replaceRewardElements en cours');
+    // console.log('replaceRewardElements en cours');
     const rakebackHTML = `
       <div class="flex flex-col p-4 rounded-lg bg-grey-700 gap-2.5" bis_skin_checked="1"><div class="flex w-full justify-between items-center gap-4" bis_skin_checked="1"><div class="flex items-center gap-4" bis_skin_checked="1"><div class="flex flex-col" bis_skin_checked="1"><svg width="55" height="64" viewBox="0 0 55 64" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M55 16.6384V48.1134L32.8992 60.7601L27.5 63.85L22.1008 60.7601L0 48.1134V16.6384L27.5 0.900024L55 16.6384Z" fill="#0A1D29"></path><path d="M52.8107 19.0523V45.6979C52.8107 46.4172 52.4234 47.0829 51.7954 47.4426L32.8992 58.2547L28.5153 60.7636C27.8856 61.125 27.1128 61.125 26.483 60.7636L22.1009 58.2564L3.20291 47.4426C2.5749 47.0829 2.18762 46.4172 2.18762 45.6979V19.0523C2.18762 18.333 2.5749 17.669 3.20291 17.3093L26.483 3.98654C27.1128 3.62688 27.8856 3.62688 28.5153 3.98654L51.7954 17.3093C52.4234 17.669 52.8107 18.333 52.8107 19.0523Z" fill="url(#paint0_linear_16329_1560)"></path><path d="M52.8107 19.0523V32.3751H2.18762V19.0523C2.18762 18.333 2.5749 17.669 3.20291 17.3093L26.483 3.98654C27.1128 3.62688 27.8873 3.62688 28.5153 3.98654L51.7954 17.3093C52.4234 17.669 52.8107 18.333 52.8107 19.0523Z" fill="url(#paint1_linear_16329_1560)"></path><path d="M52.8107 32.375V41.522C52.8107 42.0165 52.4234 42.473 51.7954 42.7203L28.5153 51.8656C27.8873 52.1145 27.1128 52.1145 26.483 51.8656L3.20291 42.7186C2.5749 42.4713 2.18762 42.0148 2.18762 41.5203V32.3733H52.8107V32.375Z" fill="url(#paint2_linear_16329_1560)"></path><path d="M33.568 32.375V46.5917L28.8213 48.3572C28.4148 48.5076 27.9578 48.5837 27.5007 48.5837C27.0437 48.5837 26.5866 48.5093 26.1802 48.3572L21.334 46.5537V32.375H33.568Z" fill="#1D303C"></path><path d="M49.6413 32.375V39.6286C49.6413 40.2355 49.1354 40.801 48.3207 41.1035L34.6143 46.2027L33.5676 46.5917L28.8209 48.3572C28.4144 48.5076 27.9574 48.5837 27.5003 48.5837C27.0433 48.5837 26.5862 48.5093 26.1798 48.3572L21.3336 46.5537L20.2869 46.1647L6.67995 41.1035C5.86527 40.7992 5.35938 40.2355 5.35938 39.6286V32.375H6.58051V39.6286C6.58051 39.9554 6.85265 40.258 7.29052 40.4223L20.2869 45.2569L21.3336 45.6459L26.7903 47.6759C27.2282 47.8384 27.7725 47.8384 28.2103 47.6759L33.5676 45.6822L34.6143 45.2932L47.7101 40.4223C48.148 40.258 48.4201 39.9554 48.4201 39.6286V32.375H49.6413Z" fill="#1D303C"></path><path d="M49.6413 21.2171V32.3751H48.4201V21.2171C48.4201 20.7157 48.148 20.2471 47.7101 19.9964L28.2103 8.83842C27.9923 8.71392 27.7463 8.64994 27.5003 8.64994C27.2544 8.64994 27.0084 8.71392 26.7903 8.83842L7.29052 19.9964C6.85265 20.2471 6.58051 20.7157 6.58051 21.2171V32.3751H5.35938V21.2171C5.35938 20.2851 5.86527 19.4154 6.67995 18.9485L26.1798 7.79057C26.9944 7.32371 28.0062 7.32371 28.8209 7.79057L34.3387 10.9479L34.3492 10.9531L48.3207 18.9485C49.1354 19.4154 49.6413 20.2851 49.6413 21.2171Z" fill="#0A1D29"></path><path d="M49.6413 21.2171V32.3751H48.4201V21.2171C48.4201 20.7157 48.148 20.2471 47.7101 19.9964L28.2103 8.83842C27.9923 8.71392 27.7463 8.64994 27.5003 8.64994C27.2544 8.64994 27.0084 8.71392 26.7903 8.83842L7.29052 19.9964C6.85265 20.2471 6.58051 20.7157 6.58051 21.2171V32.3751H5.35938V21.2171C5.35938 20.2851 5.86527 19.4154 6.67995 18.9485L26.1798 7.79057C26.9944 7.32371 28.0062 7.32371 28.8209 7.79057L34.3387 10.9479L34.3492 10.9531L48.3207 18.9485C49.1354 19.4154 49.6413 20.2851 49.6413 21.2171Z" fill="url(#paint3_linear_16329_1560)"></path><path d="M39.6185 27.6095H33.5669V32.375H21.3329V27.6095H15.2812L27.4508 14.885L39.6185 27.6095Z" fill="url(#paint4_linear_16329_1560)"></path><path d="M27.449 16.8752L15.2812 27.6095L27.4508 14.885L27.449 16.8752Z" fill="white"></path><defs><linearGradient id="paint0_linear_16329_1560" x1="27.5" y1="91.547" x2="27.5" y2="30.3192" gradientUnits="userSpaceOnUse"><stop stop-color="#0A1D29"></stop><stop offset="1" stop-color="#1D303C"></stop></linearGradient><linearGradient id="paint1_linear_16329_1560" x1="27.5" y1="32.9612" x2="27.5" y2="4.25282" gradientUnits="userSpaceOnUse"><stop stop-color="#213743"></stop><stop offset="1" stop-color="#2F4653"></stop></linearGradient><linearGradient id="paint2_linear_16329_1560" x1="27.5" y1="-8.04985" x2="27.5" y2="49.7837" gradientUnits="userSpaceOnUse"><stop stop-color="#213743"></stop><stop offset="1" stop-color="#2F4653"></stop></linearGradient><linearGradient id="paint3_linear_16329_1560" x1="27.5003" y1="4.83898" x2="27.5003" y2="36.4782" gradientUnits="userSpaceOnUse"><stop stop-color="#FFBB62"></stop><stop offset="1" stop-color="#E27837"></stop></linearGradient><linearGradient id="paint4_linear_16329_1560" x1="27.449" y1="12.1634" x2="27.449" y2="37.3548" gradientUnits="userSpaceOnUse"><stop stop-color="#FFBB62"></stop><stop offset="1" stop-color="#E27837"></stop></linearGradient></defs></svg></div> <div class="flex flex-col" bis_skin_checked="1"><h2 class="weight-bold line-height-120pct align-left size-md text-size-md  variant-highlighted  with-icon-space   svelte-1f6lug3" style="">Rakeback</h2><span class="weight-normal line-height-120pct align-left size-default text-size-default  variant-subtle  with-icon-space   svelte-1f6lug3" style="">New Rakeback available!</span></div></div> <button type="button" tabindex="0" class="inline-flex relative items-center gap-2 justify-center rounded-sm font-semibold whitespace-nowrap ring-offset-background transition disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 active:scale-[0.98] bg-blue-500 text-white hover:bg-blue-600 hover:text-white focus-visible:outline-white text-xs leading-none shadow-md py-[0.75rem] px-[0.75rem]" data-analytics="vip-reward-claim-rakeback" data-testid="vip-reward-claim-rakeback" data-button-root="">Claim</button></div>
     `;
@@ -282,12 +283,12 @@ const multiplyStats = () => {
       const header = div.querySelector('h2')?.textContent.trim();
       if (header === 'Rakeback') {
         div.outerHTML = rakebackHTML;
-        console.log('Rakeback element replaced');
+        // console.log('Rakeback element replaced');
       } else if (header === 'Weekly Boost') {
         div.outerHTML = weeklyBoostHTML;
-        console.log('Weekly Boost element replaced');
+        // console.log('Weekly Boost element replaced');
       } else {
-        console.log('No matching header found for element');
+        // console.log('No matching header found for element');
       }
     });
   };
@@ -296,7 +297,7 @@ const multiplyStats = () => {
     if (!i?.dataset.hooked) {
       i.dataset.hooked = '1';
       ['input', 'change'].forEach(e => i.addEventListener(e, () => {
-        console.log(`Input event (${e}) triggered`);
+        // console.log(`Input event (${e}) triggered`);
         convertAll();
         multiplyLTC();
       }));
@@ -304,7 +305,7 @@ const multiplyStats = () => {
   };
 
   const setupDecimalLogger = () => {
-    console.log('decimal OK gros bg');
+    // console.log('decimal OK gros bg');
     const logged = new Set();
     const checkDecimals = () => {
       const current = new Set();
@@ -329,7 +330,7 @@ const multiplyStats = () => {
                 } else {
                   el.textContent = convertedAmount;
                 }
-                console.log(`Updated decimal amount to ${convertedAmount} for ${currency}`);
+                // console.log(`Updated decimal amount to ${convertedAmount} for ${currency}`);
               }
             }
             break;
@@ -344,27 +345,27 @@ const multiplyStats = () => {
   };
 
   const setupPersistentObserver = () => {
-    console.log('Setting up MutationObserver');
+    // console.log('Setting up MutationObserver');
     const observer = new MutationObserver(muts => {
-      console.log(`MutationObserver triggered with ${muts.length} mutations`);
+      // console.log(`MutationObserver triggered with ${muts.length} mutations`);
       const elements = getElements();
       let ltcChanged = false;
       muts.forEach(m => {
         if (m.type === 'characterData') {
           if (m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
             m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '$');
-            console.log(`Replaced ARS in characterData: "${m.target.nodeValue}"`);
+            // console.log(`Replaced ARS in characterData: "${m.target.nodeValue}"`);
           }
           if ((m.target.nodeValue.includes('None') || m.target.nodeValue.includes('Bronze') || m.target.nodeValue.includes('Platinum II')) && !shouldSkip(m.target, elements)) {
             m.target.nodeValue = m.target.nodeValue.replace(/\bNone\b/g, 'Platinum III').replace(/\bBronze\b/g, 'Platinum IV').replace(/\bPlatinum II\b/g, 'Platinum III');
-            console.log(`Replaced None/Platinum II/Bronze in characterData: "${m.target.nodeValue}"`);
+            // console.log(`Replaced None/Platinum II/Bronze in characterData: "${m.target.nodeValue}"`);
           }
           if (m.target.nodeValue.includes('roimatt') && !shouldSkip(m.target, elements)) {
             m.target.nodeValue = m.target.nodeValue.replace(/\broimatt\b/g, 'AbxMatEZ');
-            console.log(`Replaced roimatt with AbxMatEZ in characterData: "${m.target.nodeValue}"`);
+            // console.log(`Replaced roimatt with AbxMatEZ in characterData: "${m.target.nodeValue}"`);
           }
           if (m.target.parentElement?.matches(CONV_SELECTOR) && m.target.nodeValue.includes('LTC')) {
-            console.log('LTC characterData change detected');
+            // console.log('LTC characterData change detected');
             ltcChanged = true;
           }
         }
@@ -372,30 +373,30 @@ const multiplyStats = () => {
           if (n.nodeType === 1) {
             if (n.matches?.('input[data-test="input-game-amount"]')) {
               hookInput(n);
-              console.log('Hooked new input element');
+              // console.log('Hooked new input element');
             }
             n.querySelectorAll?.('input[data-test="input-game-amount"]').forEach(hookInput);
             n.querySelectorAll?.(WAGERED_SELECTOR).forEach(wageredSpan => {
               if (!wageredProcessed.has(wageredSpan)) {
                 multiplyWagered();
-                console.log('Processed new wagered span');
+                // console.log('Processed new wagered span');
               }
             });
             n.querySelectorAll?.(STATS_SELECTOR).forEach(statSpan => {
               if (!statsProcessed.has(statSpan)) {
                 multiplyStats();
-                console.log('Processed new stats span');
+                // console.log('Processed new stats span');
               }
             });
             n.querySelectorAll?.('path').forEach(path => replacePaths());
             n.querySelectorAll?.('div.flex.flex-col.justify-center.rounded-lg.w-full.bg-grey-700').forEach(div => replaceBorder());
             n.querySelectorAll?.('div.p-4.rounded-lg.bg-grey-700.gap-2\\.5').forEach(div => {
               replaceRewardElements();
-              console.log('New reward element detected, content replaced');
+              // console.log('New reward element detected, content replaced');
             });
             n.querySelectorAll?.(CONV_SELECTOR).forEach(div => {
               if (div.textContent.includes('LTC')) {
-                console.log('New LTC element found in added nodes');
+                // console.log('New LTC element found in added nodes');
                 ltcChanged = true;
               }
             });
@@ -405,7 +406,7 @@ const multiplyStats = () => {
             let node;
             while (node = walker.nextNode()) {
               node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum III').replace(/\bBronze\b/g, 'Platinum IV').replace(/\bPlatinum II\b/g, 'Platinum III').replace(/\broimatt\b/g, 'AbxMatEZ');
-              console.log(`Replaced None/Platinum II/Bronze/roimatt in new node: "${node.nodeValue}"`);
+              // console.log(`Replaced None/Platinum II/Bronze/roimatt in new node: "${node.nodeValue}"`);
             }
           }
         });
@@ -419,20 +420,20 @@ const multiplyStats = () => {
       replaceRoimatt();
       if (ltcChanged) {
         multiplyLTC();
-        console.log('rate du LTC changé');
+        // console.log('rate du LTC changé');
       }
     });
 
     observer.observe(document.body, { childList: true, subtree: true, characterData: true });
-    console.log('MutationObserver is now observing');
+    // console.log('MutationObserver is now observing');
   };
 
   const waitForLTCElement = () => {
-    console.log('attente dun element LTC');
+    // console.log('attente dun element LTC');
     const check = () => {
       const ltcElements = document.querySelectorAll(CONV_SELECTOR);
       if (ltcElements.length > 0) {
-        console.log(`Found ${ltcElements.length} LTC elements, running multiplyLTC`);
+        // console.log(`Found ${ltcElements.length} LTC elements, running multiplyLTC`);
         multiplyLTC();
       } else {
         requestAnimationFrame(check);
@@ -442,7 +443,7 @@ const multiplyStats = () => {
   };
 
   (async () => {
-    console.log('Script initialization');
+    // console.log('Script initialization');
     await fetchPrices();
     convertAll();
     multiplyWagered();
@@ -459,7 +460,7 @@ const multiplyStats = () => {
     setupDecimalLogger();
     setupPersistentObserver();
     setInterval(() => {
-      console.log('Periodic check');
+      // console.log('Periodic check');
       convertAll();
       multiplyWagered();
       multiplyStats();
