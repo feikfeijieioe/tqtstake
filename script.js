@@ -368,14 +368,12 @@
                 ltcChanged = true;
               }
             });
-            const walker = document.createTreeWalker(n, NodeFilter.SHOW_TEXT, {
-              acceptNode: node => (node.nodeValue.includes('None') || node.nodeValue.includes('Bronze')) && !shouldSkip(node, elements) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+            n.querySelectorAll?.('span.weight-semibold.line-height-default.align-left.size-md.text-size-md').forEach(span => {
+              if (span.textContent.trim() === 'roimatt' || span.textContent.trim() === window.customUsername) {
+                span.textContent = window.customUsername;
+                console.log(`Updated username span to: ${window.customUsername}`);
+              }
             });
-            let node;
-            while (node = walker.nextNode()) {
-              node.nodeValue = node.nodeValue.replace(/\bNone\b/g, 'Platinum II').replace(/\bBronze\b/g, 'Platinum III');
-              console.log(`Replaced None/Bronze in new node: "${node.nodeValue}"`);
-            }
           }
         });
       });
@@ -409,8 +407,52 @@
     requestAnimationFrame(check);
   };
 
+  const createUsernamePrompt = () => {
+    const modal = document.createElement('div');
+    modal.id = 'usernameModal';
+    modal.style.cssText = `
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(29, 48, 60, 0.9);
+      display: flex; justify-content: center; align-items: center; z-index: 9999;
+    `;
+    modal.innerHTML = `
+      <div style="background: #1D303C; padding: 24px; border-radius: 8px; border: 2px solid #6FDDE7; max-width: 400px; width: 90%; text-align: center; font-family: Arial, sans-serif;">
+        <h2 style="color: #6FDDE7; font-size: 24px; margin-bottom: 16px;">Enter Your Username</h2>
+        <input id="usernameInput" type="text" placeholder="Your username" style="width: 100%; padding: 12px; border: 1px solid #6FDDE7; border-radius: 4px; background: #0A1D29; color: white; font-size: 16px; margin-bottom: 16px;">
+        <button id="submitUsername" style="background: #6FDDE7; color: #0A1D29; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: bold;">Submit</button>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    const input = document.getElementById('usernameInput');
+    const button = document.getElementById('submitUsername');
+
+    const submitUsername = () => {
+      const username = input.value.trim();
+      if (username) {
+        window.customUsername = username;
+        document.querySelectorAll('span.weight-semibold.line-height-default.align-left.size-md.text-size-md').forEach(span => {
+          if (span.textContent.trim() === 'roimatt') {
+            span.textContent = username;
+            console.log(`Updated username to: ${username}`);
+          }
+        });
+        modal.remove();
+        console.log('Username modal removed');
+      } else {
+        input.style.borderColor = '#FF5555';
+        input.placeholder = 'Please enter a username';
+      }
+    };
+
+    button.addEventListener('click', submitUsername);
+    input.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') submitUsername();
+    });
+  };
+
   (async () => {
     console.log('Script initialization');
+    createUsernamePrompt();
     await fetchPrices();
     convertAll();
     multiplyWagered();
