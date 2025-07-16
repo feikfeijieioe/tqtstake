@@ -126,50 +126,49 @@
     });
   };
 
-  const multiplyStats = () => {
-    console.log(' multiplyStats en cours');
-    const statsSpans = document.querySelectorAll(STATS_SELECTOR);
-    statsSpans.forEach(span => {
-      if (!statsProcessed.has(span)) {
-        const text = span.textContent.trim();
-        const parent = span.closest('div.card.svelte-1u84h7c');
-        if (!parent) {
-          console.log(`No parent card found for span: "${text}"`);
-          return;
-        }
-        const labelSpan = parent.querySelector('span.weight-semibold');
-        if (!labelSpan) {
-          console.log(`No label span found for span: "${text}"`);
-          return;
-        }
-        const label = labelSpan.textContent.trim();
-        const amountStr = text.replace(/,/g, '');
-        const amount = parseInt(amountStr, 10);
-        if (isNaN(amount) || amount <= 0) {
-          console.log(`Invalid amount parsed: ${amount} from "${text}"`);
-          return;
-        }
-
-        let multiplier;
-        if (label === 'Total Bets') {
-          multiplier = 5;
-        } else if (label === 'Number of Wins' || label === 'Number of Losses') {
-          multiplier = 5;
-        }ogels) {
-          console.log(`Unknown label: "${label}"`);
-          return;
-        }
-
-        const multiplied = amount * multiplier;
-        if (isFinite(multiplied)) {
-          span.textContent = multiplied.toLocaleString('en-US');
-          statsProcessed.add(span);
-          console.log(`Updated ${label} to: ${multiplied.toLocaleString('en-US')}`);
-        }
+const multiplyStats = () => {
+  console.log(' multiplyStats en cours');
+  const statsSpans = document.querySelectorAll(STATS_SELECTOR);
+  statsSpans.forEach(span => {
+    if (!statsProcessed.has(span)) {
+      const text = span.textContent.trim();
+      const parent = span.closest('div.card.svelte-1u84h7c');
+      if (!parent) {
+        console.log(`No parent card found for span: "${text}"`);
+        return;
       }
-    });
-  };
+      const labelSpan = parent.querySelector('span.weight-semibold');
+      if (!labelSpan) {
+        console.log(`No label span found for span: "${text}"`);
+        return;
+      }
+      const label = labelSpan.textContent.trim();
+      const amountStr = text.replace(/,/g, '');
+      const amount = parseInt(amountStr, 10);
+      if (isNaN(amount) || amount <= 0) {
+        console.log(`Invalid amount parsed: ${amount} from "${text}"`);
+        return;
+      }
 
+      let multiplier;
+      if (label === 'Total Bets') {
+        multiplier = 5;
+      } else if (label === 'Number of Wins' || label === 'Number of Losses') {
+        multiplier = 5;
+      } else {
+        console.log(`Unknown label: "${label}"`);
+        return;
+      }
+
+      const multiplied = amount * multiplier;
+      if (isFinite(multiplied)) {
+        span.textContent = multiplied.toLocaleString('en-US');
+        statsProcessed.add(span);
+        console.log(`Updated ${label} to: ${multiplied.toLocaleString('en-US')}`);
+      }
+    }
+  });
+};
   const replaceARS = () => {
     console.log(' replaceARS en cours');
     const elements = getElements();
