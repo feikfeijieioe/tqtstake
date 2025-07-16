@@ -12,7 +12,7 @@
 
   const API = `https://api.coingecko.com/api/v3/simple/price?ids=${Object.values(COINS).join(',')}&vs_currencies=usd`;
   const CONV_SELECTOR = 'span.label-content.svelte-osbo5w.full-width div.crypto[data-testid="conversion-amount"]';
-  const WAGERED_SELECTOR = 'div.card.svelte-1u84h7c span.weight-bold.line-height-default.align-left.size-md.text-size-md.variant-highlighted.numeric.svelte-1f6lug3';
+  const WAGERED_SELECTOR = 'div.currency.svelte-13xyujb span.weight-bold.line-height-default.align-left.size-md.text-size-md.variant-highlighted.numeric.svelte-1f6lug3';
   const prices = {}, originalTexts = new WeakMap(), wageredProcessed = new Map();
 
   const getElements = () => ({
@@ -55,17 +55,17 @@
 
     const amountStr = match[1].replace(/,/g, '');
     const amount = parseFloat(amountStr);
-    if (isNaN(amount)) return;
+    if (isNaN(amount) || amount <= 0) return;
 
     const originalAmount = wageredProcessed.get(wageredSpan)?.original || amount;
     if (!wageredProcessed.has(wageredSpan)) {
-      const multiplied = amount * 600;
+      const multiplied = amount * 450;
       wageredSpan.textContent = `$${formatNumber(multiplied)}`;
       wageredProcessed.set(wageredSpan, { original: amount, multiplied: multiplied });
     } else {
       const stored = wageredProcessed.get(wageredSpan);
       if (stored.original !== amount) {
-        const multiplied = amount * 600;
+        const multiplied = amount * 450;
         wageredSpan.textContent = `$${formatNumber(multiplied)}`;
         wageredProcessed.set(wageredSpan, { original: amount, multiplied: multiplied });
       }
