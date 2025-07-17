@@ -46,26 +46,37 @@
     });
   };
 
-  const multiplyLTC = () => {
-    console.log(' multiplyLTC en cours');
-    const ltcElements = document.querySelectorAll(CONV_SELECTOR);
-    console.log(`Found ${ltcElements.length} elements matching ${CONV_SELECTOR}`);
+const multiplyLTC = () => {
+  console.log('multiplyLTC en cours');
+  const ltcElements = document.querySelectorAll('div.crypto[data-testid="conversion-amount"]');
+  console.log(`Found ${ltcElements.length} elements matching div.crypto[data-testid="conversion-amount"]`);
 
-    const input = document.querySelector('input[data-test="input-game-amount"]');
-    if (!input) {
-      console.log('Input element pas trouvé');
-      return;
-    }
+  // Attendre l'élément input avec un mécanisme de polling
+  const waitForInput = () => {
+    return new Promise((resolve) => {
+      const checkInput = () => {
+        const input = document.querySelector('input[data-testid="input-game-amount"]');
+        if (input) {
+          resolve(input);
+        } else {
+          console.log('Input element pas trouvé, nouvelle tentative...');
+          setTimeout(checkInput, 100); // Vérifier toutes les 100ms
+        }
+      };
+      checkInput();
+    });
+  };
 
+  waitForInput().then(input => {
     const inputValue = parseFloat(input.value) || 0;
     if (isNaN(inputValue) || inputValue < 0) {
-      console.log('Invalid input value');
+      console.log('Valeur d\'entrée invalide');
       return;
     }
 
-    const BASE_LTC = 0.00064129; 
+    const BASE_LTC = 0.00064129;
     const MULTIPLIER = 1291;
-    const proportion = inputValue / 80; 
+    const proportion = inputValue / 80;
     const ltcAmount = BASE_LTC * proportion;
     const multiplied = ltcAmount * MULTIPLIER;
     const newText = `${multiplied.toFixed(8)} LTC`;
@@ -80,17 +91,18 @@
 
       if (!originalLTCTexts.has(div)) {
         originalLTCTexts.set(div, text);
-        console.log(`stockage du prix original du ltc "${text}"`);
+        console.log(`Stockage du prix original du LTC "${text}"`);
       }
 
       if (div.textContent.trim() !== newText) {
         div.textContent = newText;
         console.log(`Updated element to: "${newText}" (from ${inputValue})`);
       } else {
-        console.log('tout est bon');
+        console.log('Tout est bon');
       }
     });
-  };
+  }).catch(err => console.error('Erreur lors de l\'attente de l\'input:', err));
+};
 
   const formatNumber = (num) => {
     return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
