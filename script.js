@@ -51,16 +51,16 @@ const multiplyLTC = () => {
   const ltcElements = document.querySelectorAll('div.crypto[data-testid="conversion-amount"]');
   console.log(`Found ${ltcElements.length} elements matching div.crypto[data-testid="conversion-amount"]`);
 
-  // Attendre l'élément input avec un mécanisme de polling
   const waitForInput = () => {
     return new Promise((resolve) => {
       const checkInput = () => {
         const input = document.querySelector('input[data-testid="input-game-amount"]');
         if (input) {
+          console.log('Input element trouvé !');
           resolve(input);
         } else {
           console.log('Input element pas trouvé, nouvelle tentative...');
-          setTimeout(checkInput, 100); // Vérifier toutes les 100ms
+          requestAnimationFrame(checkInput); // Utiliser requestAnimationFrame pour une détection synchrone avec le rendu
         }
       };
       checkInput();
@@ -103,6 +103,34 @@ const multiplyLTC = () => {
     });
   }).catch(err => console.error('Erreur lors de l\'attente de l\'input:', err));
 };
+
+// Intégrer dans l'observateur pour détecter l'input dynamiquement
+const setupPersistentObserver = () => {
+  const observer = new MutationObserver(muts => {
+    const elements = getElements();
+    let ltcChanged = false;
+    muts.forEach(m => {
+      // ... (code existant pour autres éléments)
+
+      m.addedNodes.forEach(n => {
+        if (n.nodeType === 1) {
+          const input = n.querySelector('input[data-testid="input-game-amount"]');
+          if (input) {
+            hookInput(input); // Attacher les écouteurs
+            multiplyLTC(); // Relancer multiplyLTC quand l'input est détecté
+          }
+          // ... (code existant pour autres sélecteurs)
+        }
+      });
+    });
+    // ... (code existant)
+  });
+
+  observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+};
+
+// Appeler au démarrage
+multiplyLTC();
 
   const formatNumber = (num) => {
     return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
