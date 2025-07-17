@@ -161,7 +161,7 @@
     });
     let node;
     while (node = walker.nextNode()) {
-      node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(node, elements) ? 'USD' : '$');
+      node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, '');
     }
   };
 
@@ -300,7 +300,7 @@
       muts.forEach(m => {
         if (m.type === 'characterData') {
           if (m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
-            m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, isUSDElement(m.target, elements) ? 'USD' : '$');
+            m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, '');
           }
           if ((m.target.nodeValue.includes('None') || m.target.nodeValue.includes('Bronze')) && !shouldSkip(m.target, elements)) {
             m.target.nodeValue = m.target.nodeValue.replace(/\bNone\b/g, 'Platinum III').replace(/\bBronze\b/g, 'Platinum IV');
