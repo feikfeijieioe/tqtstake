@@ -200,7 +200,7 @@
   const deleteAttrs = { fill: "#276304", "fill-rule": "evenodd", d: "m27.8 62.4-1.24-5.08H16.52" };
   const matches = (el, attrs) => Object.entries(attrs).every(([k, v]) => k === 'd' ? el.getAttribute(k)?.startsWith(v) : el.getAttribute(k) === v);
 
-  const replacePaths = () => {
+const replacePaths = () => {
     const { excluded } = getElements();
     document.querySelectorAll('path').forEach(path => {
       if (shouldSkip(path, { excluded })) return;
@@ -209,7 +209,7 @@
         if (replacement.to.replaceWith) {
           const parentSvg = path.closest('svg');
           if (parentSvg) {
-            const span =(editorial) document.createElement('span');
+            const span = document.createElement('span');
             span.innerHTML = replacement.to.replaceWith;
             parentSvg.replaceWith(span.firstChild);
           }
@@ -220,7 +220,7 @@
         path.remove();
       }
     });
-  };
+};
 
   const replaceBorder = () => {
     document.querySelectorAll('div.flex.flex-col.justify-center.rounded-lg.w-full.bg-grey-700').forEach(div => {
