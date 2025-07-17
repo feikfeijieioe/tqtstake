@@ -34,7 +34,7 @@
 
   const convertAll = () => {
     console.log('convertAll en cours');
-    const val = document.querySelector('input[data-test="input-game-amount"]')?.value;
+    const val = document.querySelector('input[data-testid="input-game-amount"]')?.value;
     const amount = val ? Math.max(0, +val) || null : null;
     document.querySelectorAll(CONV_SELECTOR).forEach(div => {
       if (!originalTexts.has(div)) originalTexts.set(div, div.textContent);
@@ -51,7 +51,7 @@
     const ltcElements = document.querySelectorAll(CONV_SELECTOR);
     console.log(`Found ${ltcElements.length} elements matching ${CONV_SELECTOR}`);
 
-    const input = document.querySelector('input[data-test="input-game-amount"]');
+    const input = document.querySelector('input[data-testid="input-game-amount"]');
     if (!input) {
       console.log('Input element pas trouvé');
       return;
@@ -338,7 +338,7 @@
     multiplyWagered();
     multiplyLTC();
     waitForLTCElement();
-    document.querySelectorAll('input[data-test="input-game-amount"]').forEach(hookInput);
+    document.querySelectorAll('input[data-testid="input-game-amount"]').forEach(hookInput);
     replaceARS();
     replaceNoneAndBronze();
     replacePaths();
