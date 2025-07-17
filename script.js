@@ -138,9 +138,9 @@
 
         let multiplier;
         if (label === 'Total Bets') {
-          multiplier = 5;
+          multiplier = 8;
         } else if (label === 'Number of Wins' || label === 'Number of Losses') {
-          multiplier = 5;
+          multiplier = 8;
         } else {
           return;
         }
