@@ -19,7 +19,6 @@
   });
 
   const shouldSkip = (node, elements) => elements.excluded?.contains(node);
-  const isUSDElement = (node, elements) => elements.usd.some(el => el?.contains(node));
 
   const fetchPrices = async () => {
     try {
@@ -42,19 +41,19 @@
   };
 
   const multiplyLTC = () => {
-    console.log(' multiplyLTC en cours');
+    console.log('MULTIPLYLTC EN COURS');
     const ltcElements = document.querySelectorAll(CONV_SELECTOR);
-    console.log(`Found ${ltcElements.length} elements matching ${CONV_SELECTOR}`);
+    console.log(`TROUVÉ ${ltcElements.length} ÉLÉMENTS CORRESPONDANT À ${CONV_SELECTOR}`);
 
     const input = document.querySelector('input[data-testid="input-game-amount"]');
     if (!input) {
-      console.log('Input element pas trouvé');
+      console.log('INPUT NON TROUVÉ');
       return;
     }
 
     const inputValue = parseFloat(input.value) || 0;
     if (isNaN(inputValue) || inputValue < 0) {
-      console.log('Invalid input value');
+      console.log('VALEUR D\'ENTRÉE INVALIDE');
       return;
     }
 
@@ -67,22 +66,22 @@
 
     ltcElements.forEach(div => {
       const text = div.textContent.trim();
-      console.log(`Processing element with text: "${text}"`);
+      console.log(`TRAITEMENT DE L'ÉLÉMENT AVEC LE TEXTE: "${text}"`);
       if (!text.includes('LTC')) {
-        console.log('No LTC found, skipping');
+        console.log('PAS DE LTC TROUVÉ, ON PASSE');
         return;
       }
 
       if (!originalLTCTexts.has(div)) {
         originalLTCTexts.set(div, text);
-        console.log(`stockage du prix original du ltc "${text}"`);
+        console.log(`STOCKAGE DU PRIX ORIGINAL DU LTC "${text}"`);
       }
 
       if (div.textContent.trim() !== newText) {
         div.textContent = newText;
-        console.log(`Updated element to: "${newText}" (from ${inputValue})`);
+        console.log(`MISE À JOUR DE L'ÉLÉMENT À: "${newText}" (À PARTIR DE ${inputValue})`);
       } else {
-        console.log('tout est bon');
+        console.log('TOUT EST BON POUR LTC');
       }
     });
   };
@@ -161,8 +160,15 @@
     });
     let node;
     while (node = walker.nextNode()) {
+      const originalText = node.nodeValue;
       node.nodeValue = node.nodeValue.replace(/ARS[\s\u00A0]*/g, '');
+      if (originalText !== node.nodeValue) {
+        console.log(`REMPLACEMENT ARS EFFECTUÉ: "${originalText}" -> "${node.nodeValue}"`);
+      } else {
+        console.log(`AUCUN REMPLACEMENT ARS NÉCESSAIRE POUR: "${originalText}"`);
+      }
     }
+    console.log('FIN DE LA FONCTION REPLACEARS');
   };
 
   const replaceNoneAndBronze = () => {
@@ -300,7 +306,13 @@
       muts.forEach(m => {
         if (m.type === 'characterData') {
           if (m.target.nodeValue.includes('ARS') && !shouldSkip(m.target, elements)) {
+            const originalText = m.target.nodeValue;
             m.target.nodeValue = m.target.nodeValue.replace(/ARS[\s\u00A0]*/g, '');
+            if (originalText !== m.target.nodeValue) {
+              console.log(`OBSERVER - REMPLACEMENT ARS EFFECTUÉ: "${originalText}" -> "${m.target.nodeValue}"`);
+            } else {
+              console.log(`OBSERVER - AUCUN REMPLACEMENT ARS NÉCESSAIRE POUR: "${originalText}"`);
+            }
           }
           if ((m.target.nodeValue.includes('None') || m.target.nodeValue.includes('Bronze')) && !shouldSkip(m.target, elements)) {
             m.target.nodeValue = m.target.nodeValue.replace(/\bNone\b/g, 'Platinum III').replace(/\bBronze\b/g, 'Platinum IV');
