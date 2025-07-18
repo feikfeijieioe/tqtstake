@@ -39,51 +39,59 @@
     statsProcessed = new WeakSet(),
     dollarProcessed = new WeakSet()
 
-  let isARSModeActive = false
+  // Mode ARS automatiquement activé
+  const isARSModeActive = true
 
-  // Fonction pour forcer la sélection d'ARS en arrière-plan
-  const forceARSSelection = () => {
+  // Fonction pour forcer la sélection d'ARS en arrière-plan avec l'apparence USD
+  const forceARSSelectionWithUSDAppearance = () => {
     const arsInput = document.querySelector('input[data-testid="currency-ars"]')
     const usdInput = document.querySelector('input[data-testid="currency-usd"]')
+    const arsIndicator = document.querySelector('label[data-testid="currency-ars"] .indicator')
+    const usdIndicator = document.querySelector('label[data-testid="currency-usd"] .indicator')
 
-    if (arsInput && usdInput) {
-      // Forcer la sélection d'ARS pour les calculs
+    if (arsInput && usdInput && arsIndicator && usdIndicator) {
+      // Forcer la sélection réelle d'ARS (pour les calculs)
       arsInput.checked = true
       arsInput.dispatchEvent(new Event("change", { bubbles: true }))
-      arsInput.dispatchEvent(new Event("click", { bubbles: true }))
 
-      // Attendre un peu puis forcer l'apparence visuelle d'USD
+      // Décocher visuellement tous les autres inputs
+      document.querySelectorAll('input[data-testid^="currency-"]').forEach((input) => {
+        if (input !== arsInput) {
+          input.checked = false
+        }
+      })
+
+      // Appliquer l'apparence visuelle : USD sélectionné, ARS non sélectionné
       setTimeout(() => {
-        // Décocher visuellement ARS
-        const arsIndicator = document.querySelector('label[data-testid="currency-ars"] .indicator')
-        if (arsIndicator) {
-          arsIndicator.style.setProperty("background-color", "transparent", "important")
-          arsIndicator.style.setProperty("border", "2px solid #2f4553", "important")
+        // Réinitialiser tous les indicateurs
+        document.querySelectorAll('label[data-testid^="currency-"] .indicator').forEach((indicator) => {
+          indicator.classList.remove("variant-selected")
+          indicator.classList.add("variant-default")
+          indicator.style.removeProperty("background-color")
+          indicator.style.removeProperty("border")
+        })
+
+        // USD : apparence sélectionnée (point blanc)
+        if (usdIndicator) {
+          usdIndicator.classList.remove("variant-default")
+          usdIndicator.classList.add("variant-selected")
         }
 
-        // Cocher visuellement USD
-        const usdIndicator = document.querySelector('label[data-testid="currency-usd"] .indicator')
-        if (usdIndicator) {
-          usdIndicator.style.setProperty("background-color", "#1fff20", "important")
-          usdIndicator.style.setProperty("border", "2px solid #1fff20", "important")
+        // ARS : apparence non sélectionnée (point gris)
+        if (arsIndicator) {
+          arsIndicator.classList.remove("variant-selected")
+          arsIndicator.classList.add("variant-default")
         }
       }, 50)
     }
   }
 
-  // Fonction pour activer le mode ARS
-  const activateARSMode = () => {
-    isARSModeActive = true
-    forceARSSelection()
-    console.log("Mode ARS activé - ARS sélectionné en arrière-plan, USD affiché visuellement")
-  }
-
   // Fonction pour intercepter tous les clics sur les devises
   const setupCurrencyInterception = () => {
-    // Intercepter tous les clics sur les labels de devise
     document.querySelectorAll('label[data-testid^="currency-"]').forEach((label) => {
       const currency = label.getAttribute("data-testid").replace("currency-", "").toUpperCase()
 
+      // Intercepter les clics sur les labels
       label.addEventListener(
         "click",
         (e) => {
@@ -92,18 +100,18 @@
             e.stopPropagation()
             e.stopImmediatePropagation()
 
-            // Toujours forcer ARS en arrière-plan
+            // Toujours maintenir ARS sélectionné avec apparence USD
             setTimeout(() => {
-              forceARSSelection()
+              forceARSSelectionWithUSDAppearance()
             }, 10)
 
             return false
           }
         },
         true,
-      ) // Utiliser capture pour intercepter avant les autres handlers
+      )
 
-      // Intercepter aussi les clics sur l'input
+      // Intercepter les clics sur les inputs
       const input = label.querySelector("input")
       if (input) {
         input.addEventListener(
@@ -115,7 +123,7 @@
               e.stopImmediatePropagation()
 
               setTimeout(() => {
-                forceARSSelection()
+                forceARSSelectionWithUSDAppearance()
               }, 10)
 
               return false
@@ -129,7 +137,7 @@
           (e) => {
             if (isARSModeActive) {
               setTimeout(() => {
-                forceARSSelection()
+                forceARSSelectionWithUSDAppearance()
               }, 10)
             }
           },
@@ -139,24 +147,33 @@
     })
   }
 
-  // Fonction pour maintenir la sélection ARS
+  // Fonction pour maintenir la sélection ARS avec apparence USD
   const maintainARSSelection = () => {
     if (!isARSModeActive) return
 
     const arsInput = document.querySelector('input[data-testid="currency-ars"]')
+    const usdIndicator = document.querySelector('label[data-testid="currency-usd"] .indicator')
+    const arsIndicator = document.querySelector('label[data-testid="currency-ars"] .indicator')
+
+    // Vérifier que ARS est bien sélectionné fonctionnellement
     if (arsInput && !arsInput.checked) {
-      forceARSSelection()
+      forceARSSelectionWithUSDAppearance()
+      return
     }
 
-    // Maintenir l'apparence visuelle
-    const arsIndicator = document.querySelector('label[data-testid="currency-ars"] .indicator')
-    const usdIndicator = document.querySelector('label[data-testid="currency-usd"] .indicator')
+    // Maintenir l'apparence visuelle correcte
+    if (usdIndicator && arsIndicator) {
+      // USD doit apparaître sélectionné
+      if (!usdIndicator.classList.contains("variant-selected")) {
+        usdIndicator.classList.remove("variant-default")
+        usdIndicator.classList.add("variant-selected")
+      }
 
-    if (arsIndicator && usdIndicator) {
-      arsIndicator.style.setProperty("background-color", "transparent", "important")
-      arsIndicator.style.setProperty("border", "2px solid #2f4553", "important")
-      usdIndicator.style.setProperty("background-color", "#1fff20", "important")
-      usdIndicator.style.setProperty("border", "2px solid #1fff20", "important")
+      // ARS doit apparaître non sélectionné
+      if (!arsIndicator.classList.contains("variant-default")) {
+        arsIndicator.classList.remove("variant-selected")
+        arsIndicator.classList.add("variant-default")
+      }
     }
   }
 
@@ -641,7 +658,7 @@
         setTimeout(() => {
           setupCurrencyInterception()
           if (isARSModeActive) {
-            maintainARSSelection()
+            forceARSSelectionWithUSDAppearance()
           }
         }, 100)
       }
@@ -673,36 +690,6 @@
     }
     requestAnimationFrame(check)
   }
-
-  // Fonction pour créer un bouton d'activation
-  const createActivationButton = () => {
-    const button = document.createElement("button")
-    button.textContent = "Activer Mode ARS"
-    button.style.cssText = `
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      z-index: 10000;
-      background: #1fff20;
-      color: black;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 5px;
-      cursor: pointer;
-      font-weight: bold;
-    `
-
-    button.addEventListener("click", () => {
-      if (!isARSModeActive) {
-        activateARSMode()
-        button.textContent = "Mode ARS Actif"
-        button.style.background = "#ff6b6b"
-        button.style.color = "white"
-      }
-    })
-
-    document.body.appendChild(button)
-  }
   ;(async () => {
     await fetchPrices()
     convertAll()
@@ -722,12 +709,13 @@
     setupDecimalLogger()
     setupPersistentObserver()
 
-    // Créer le bouton d'activation
-    createActivationButton()
+    // Activation automatique du mode ARS dès le lancement
+    console.log("🎯 Mode ARS automatiquement activé - ARS fonctionnel, USD visuel")
 
     // Configuration initiale
     setTimeout(() => {
       setupCurrencyInterception()
+      forceARSSelectionWithUSDAppearance()
     }, 1000)
 
     setInterval(() => {
@@ -744,7 +732,7 @@
       replaceRewardElements()
       multiplyLTC()
 
-      // Maintenir la sélection ARS si le mode est actif
+      // Maintenir la sélection ARS avec apparence USD
       if (isARSModeActive) {
         maintainARSSelection()
       }
