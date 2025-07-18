@@ -179,7 +179,7 @@
   const replaceDollarAmount = () => {
     const elements = getElements();
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
-      acceptNode: n => shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : n.nodeValue.includes('$2,535.72') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+      acceptNode: n => shouldSkip(n, elements) ? NodeFilter.FILTER_REJECT : n.nodeValue.includes('$2,510.25') ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
     });
     let node;
     while (node = walker.nextNode()) {
